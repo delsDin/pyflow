@@ -1,0 +1,6 @@
+{
+  "name": "PyFlow",
+  "description": "Une application d'apprentissage interactive de Python, guidant les étudiants de débutant à expert en 28 jours avec des cours quotidiens, exercices pratiques, mini-projets et suivi de progression.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

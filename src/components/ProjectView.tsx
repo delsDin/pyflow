@@ -1,0 +1,382 @@
+import { useState } from 'react';
+import { Trophy, Clock, CheckCircle2, ChevronRight, HelpCircle, Eye, EyeOff, Terminal, Sparkles, BookOpen, Lock } from 'lucide-react';
+import Markdown from 'react-markdown';
+import { LearnProject, UserProgress } from '../types';
+import { projects } from '../data/projects';
+import { PythonHighlighter } from '../utils/pythonHighlighter';
+
+const compactMarkdownComponents = {
+  p: ({ children }: any) => <span className="inline-block font-sans">{children}</span>,
+  code: ({ children }: any) => {
+    const codeText = String(children);
+    const hasKeyword = /\b(if|elif|else|and|or|not|True|False|None|print|while|for|range)\b/.test(codeText);
+    return (
+      <code className="px-1 py-0.5 bg-slate-100 font-mono text-slate-800 text-[11px] rounded border border-slate-200">
+        {hasKeyword ? <PythonHighlighter code={codeText} isDark={false} /> : children}
+      </code>
+    );
+  },
+  strong: ({ children }: any) => <strong className="font-bold text-slate-800">{children}</strong>,
+  em: ({ children }: any) => <em className="italic text-slate-500">{children}</em>,
+};
+
+interface ProjectViewProps {
+  progress: UserProgress;
+  activeProjectId: string | null;
+  onSelectProject: (projectId: string) => void;
+  onCompleteProject: (projectId: string) => void;
+  unlockedProjects: string[];
+}
+
+export default function ProjectView({ progress, activeProjectId, onSelectProject, onCompleteProject, unlockedProjects = [] }: ProjectViewProps) {
+  // Set first project as active if none provided
+  const listProjects = projects;
+  const currentProjId = activeProjectId || listProjects[0].id;
+  const currentProject = listProjects.find(p => p.id === currentProjId) || listProjects[0];
+
+  const hasCompleted = progress.completedProjects.includes(currentProject.id);
+  const isLocked = !unlockedProjects.includes(currentProject.id);
+
+  // Accordion active step index
+  const [activeStepIdx, setActiveStepIdx] = useState(0);
+
+  // Show code solutions helper
+  const [showSolution, setShowSolution] = useState(false);
+
+  // Active step hint toggler
+  const [showHint, setShowHint] = useState<Record<number, boolean>>({});
+
+  const toggleHint = (stepId: number) => {
+    setShowHint(prev => ({ ...prev, [stepId]: !prev[stepId] }));
+  };
+
+  if (isLocked) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        {/* Left Side: project selectors if they exist */}
+        <div className="md:col-span-3 border border-slate-100 rounded-2xl p-4 bg-white/70 space-y-3 shadow-2xs">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Projets du Programme</h3>
+          <div className="space-y-2">
+            {listProjects.map((p) => {
+              const projLocked = !unlockedProjects.includes(p.id);
+              const active = p.id === currentProject.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => onSelectProject(p.id)}
+                  className={`w-full flex items-center justify-between text-left p-3.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                    active
+                      ? 'bg-indigo-50 border-indigo-200 text-indigo-905 font-bold shadow-2xs'
+                      : projLocked
+                      ? 'opacity-65 text-slate-400 hover:border-slate-150 bg-slate-50/50'
+                      : 'hover:bg-slate-50 border-slate-50 text-slate-700'
+                  }`}
+                >
+                  <div className="truncate pr-1">
+                    <span className="text-[10px] font-mono text-slate-450 block uppercase tracking-wider">{p.level}</span>
+                    <span className="truncate block font-sans font-medium">{p.title}</span>
+                  </div>
+                  {projLocked ? <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Locked Card Details */}
+        <div className="md:col-span-9 max-w-xl mx-auto my-6 animate-fade-in text-slate-700">
+          <div className="border border-slate-200 rounded-3xl bg-white p-8 shadow-md text-center space-y-6">
+            <div className="mx-auto h-16 w-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+              <Lock className="h-8 w-8 animate-pulse" />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="font-display font-black text-xl text-slate-900 tracking-tight">
+                Projet Guidé Bloqué : {currentProject.title}
+              </h2>
+              <p className="text-xs text-slate-500 leading-relaxed font-sans px-4">
+                Ce défi final n'a pas encore été ouvert d'accès par l'administration. Par défaut, tous les cours, exercices et projets sont bloqués.
+              </p>
+            </div>
+
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl text-left space-y-2">
+              <h4 className="font-bold text-slate-800 text-xs flex items-center gap-1.5 uppercase tracking-wide text-indigo-900 font-display">
+                <span>💡</span> Comment démarrer ce projet ?
+              </h4>
+              <p className="text-[11px] text-slate-500 leading-relaxed font-sans mt-1">
+                Rendez-vous dans la section <strong className="text-slate-800">Administration</strong> de la barre latérale pour activer le projet <strong className="font-mono bg-indigo-50 border border-indigo-100 px-1 py-0.5 rounded text-indigo-700">{currentProject.id}</strong> avec le code secret.
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-center pt-2">
+              <button
+                onClick={() => {
+                  const firstUnlocked = listProjects.find(p => unlockedProjects.includes(p.id));
+                  if (firstUnlocked) {
+                    onSelectProject(firstUnlocked.id);
+                  }
+                }}
+                className="px-4 py-2 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white text-slate-700 shadow-3xs"
+              >
+                Aller au premier projet débloqué
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSelectProject = (id: string) => {
+    onSelectProject(id);
+    setActiveStepIdx(0);
+    setShowSolution(false);
+    setShowHint({});
+  };
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {/* Portfolio Selector grid list */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {listProjects.map((proj, idx) => {
+          const isSelected = proj.id === currentProject.id;
+          const isCompleted = progress.completedProjects.includes(proj.id);
+          
+          let colorBorder = 'border-slate-100 hover:border-slate-300 bg-white';
+          if (isSelected) {
+            colorBorder = 'border-indigo-500 shadow-sm ring-1 ring-indigo-200 bg-indigo-50/5';
+          }
+
+          return (
+            <button
+              key={proj.id}
+              onClick={() => handleSelectProject(proj.id)}
+              className={`p-4 rounded-xl border transition-all text-left flex gap-3.5 items-start cursor-pointer group ${colorBorder}`}
+            >
+              <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center font-bold text-sm ${
+                isCompleted 
+                  ? 'bg-emerald-50 text-emerald-650' 
+                  : 'bg-indigo-50 text-indigo-650'
+              }`}>
+                {isCompleted ? <CheckCircle2 className="h-5.5 w-5.5 text-emerald-500" /> : <Trophy className="h-5 w-5" />}
+              </div>
+
+              <div className="space-y-1 truncate w-[85%]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-indigo-600 transition-colors">
+                    Étape {idx + 1} • {proj.level}
+                  </span>
+                  {isCompleted && <span className="text-[9px] font-semibold text-emerald-650">Résolu</span>}
+                </div>
+                <h4 className="font-bold text-slate-800 text-xs truncate">{proj.title}</h4>
+                <p className="text-[10px] text-slate-400 truncate font-sans">{proj.technologies.slice(0, 3).join(', ')}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main workspace layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+        {/* Left Side: Step Guide Accordion & Overview (7 cols) */}
+        <div className="xl:col-span-7 space-y-6">
+          <div className="border border-slate-100/80 rounded-2xl p-6 bg-white shadow-3xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Projet Pratique {currentProject.level}</span>
+                <h1 className="font-display text-xl font-bold text-slate-900 leading-tight">
+                  {currentProject.title}
+                </h1>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+                  <Clock className="h-3.5 w-3.5 text-slate-400" /> {currentProject.estimatedTime}
+                </span>
+                {hasCompleted && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Validé
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-650 leading-relaxed font-sans">
+              {currentProject.description}
+            </p>
+
+            {/* Tech chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1.5 pb-2">
+              {currentProject.technologies.map((tech, i) => (
+                <span key={i} className="text-[10px] font-semibold font-mono px-2 py-0.5 rounded-md bg-indigo-50/50 text-indigo-700 border border-indigo-100/30">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Stepped Milestones outline */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Jalons d’Étapes</h3>
+
+            <div className="space-y-3">
+              {currentProject.steps.map((step, idx) => {
+                const isOpen = idx === activeStepIdx;
+
+                return (
+                  <div 
+                    key={step.id} 
+                    className={`border rounded-xl transition-all overflow-hidden ${
+                      isOpen 
+                        ? 'border-indigo-100 bg-linear-to-b from-white to-slate-50/20 shadow-3xs' 
+                        : 'border-slate-100 hover:border-slate-205 bg-white'
+                    }`}
+                  >
+                    {/* Header trigger */}
+                    <button
+                      onClick={() => setActiveStepIdx(idx)}
+                      className="w-full text-left p-4 flex items-center justify-between cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`h-6 w-6 rounded-md flex items-center justify-center text-xs font-bold font-mono ${
+                          isOpen
+                            ? 'bg-indigo-600 text-white shadow-3xs'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {step.id}
+                        </span>
+                        <h4 className="font-bold text-slate-800 text-xs font-sans sm:text-sm">
+                          {step.title}
+                        </h4>
+                      </div>
+                      <ChevronRight className={`h-4.5 w-4.5 text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {/* Step details inside accordion */}
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 border-t border-slate-50 space-y-4 animate-fade-in">
+                        <div className="text-xs text-slate-650 leading-relaxed font-sans">
+                          <Markdown components={compactMarkdownComponents}>{step.instruction}</Markdown>
+                        </div>
+
+                        {/* Hint box */}
+                        <div className="space-y-1.5">
+                          <button
+                            onClick={() => toggleHint(step.id)}
+                            className="text-xs text-slate-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer select-none"
+                          >
+                            <HelpCircle className="h-3.5 w-3.5" /> {showHint[step.id] ? "Masquer l'indice" : "Besoin d'un indice ?"}
+                          </button>
+                          
+                          {showHint[step.id] && (
+                            <div className="p-3 bg-indigo-50/40 border border-indigo-100/50 rounded-lg text-xs text-indigo-950 leading-relaxed font-sans">
+                              <Markdown components={compactMarkdownComponents}>{step.hint}</Markdown>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Starting template if present */}
+                        {step.initialCode && (
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-0.5">Squelette de code initial (template) :</span>
+                            <div className="rounded-xl bg-slate-950 border border-slate-800/80 overflow-hidden font-mono text-[11px] text-slate-305 p-3.5 max-h-48 overflow-auto">
+                              <pre className="whitespace-pre-wrap"><code><PythonHighlighter code={step.initialCode} /></code></pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Validation section in bottom */}
+          <div className="border border-slate-100 rounded-xl p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <h4 className="font-bold text-slate-800 text-xs">Avez-vous réussi le projet ?</h4>
+              <p className="text-[10px] text-slate-400">Une fois assemblé, enregistrez-le pour l’ajouter à votre score d’expert.</p>
+            </div>
+            <button
+              onClick={() => onCompleteProject(currentProject.id)}
+              className={`px-4.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                hasCompleted
+                  ? 'bg-emerald-100 border border-emerald-200 text-emerald-800'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-3xs'
+              }`}
+            >
+              {hasCompleted ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Projet Validé (Annuler)
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 animate-pulse" /> Déclarer Résolu &amp; Valider
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Right Side: Reference Solution Pane (5 cols) */}
+        <div className="xl:col-span-5 sticky top-6 space-y-6">
+          <div className="border border-slate-150 rounded-2xl bg-slate-950 shadow-md overflow-hidden">
+            <div className="bg-slate-900/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Terminal className="h-4 w-4 text-emerald-500" />
+                <span className="text-xs font-mono font-bold text-slate-350">solution_référence.py</span>
+              </div>
+
+              <button
+                onClick={() => setShowSolution(!showSolution)}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] rounded-lg text-slate-300 font-semibold transition-colors flex items-center gap-1 text-[11px]"
+              >
+                {showSolution ? (
+                  <>
+                    <EyeOff className="h-3 w-3" /> Cacher la solution
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-3 w-3" /> Révéler la solution
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Solution Display or Hidden Overlay */}
+            <div className="relative min-h-80 bg-black/90 p-5 font-mono text-[11px] leading-relaxed text-slate-300 overflow-auto">
+              {showSolution ? (
+                <pre className="whitespace-pre overflow-auto max-h-120 custom-scrollbar"><code><PythonHighlighter code={currentProject.solutionCode} /></code></pre>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-linear-to-b from-slate-950/80 to-slate-950 space-y-4">
+                  <div className="h-10 w-10 bg-slate-900 rounded-full flex items-center justify-center text-slate-400">
+                    🔒
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-205 text-sm">Solution Professionnelle Verrouillée</h5>
+                    <p className="text-[10px] text-slate-400 max-w-xs leading-relaxed mt-1 font-sans">
+                      Nous vous encourageons fortement à écrire le projet vous-même en combinant les jalons avant de consulter le fichier d’implémentation.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowSolution(true)}
+                    className="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer font-sans"
+                  >
+                    Révéler la solution quand même
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Shell footer */}
+            <div className="bg-slate-950 border-t border-slate-850 p-3 flex justify-between items-center text-[10px] text-slate-500 font-mono">
+              <span className="flex items-center gap-1"><BookOpen className="h-3 w-3 text-slate-400" /> Structure Clean-Code PEP8</span>
+              <span>100% Fonctionnel</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
