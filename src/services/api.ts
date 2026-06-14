@@ -3,8 +3,8 @@
  * Interacts with Supabase Edge Functions for access management and progress sync.
  */
 
-const SUPABASE_URL = 'https://ubhjppswghvfloieodzw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViaGpwcHN3Z2h2ZmxvaWVvZHp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNjk1OTYsImV4cCI6MjA5Njc0NTU5Nn0.JKcyLtGoGv9OXCNo2KjwBx8dq12G9UNUw08CuB6CT1g';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const ADMIN_FN = `${SUPABASE_URL}/functions/v1/pyflow-admin`;
 const STUDENT_FN = `${SUPABASE_URL}/functions/v1/pyflow-student`;
