@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, CheckCircle2, Terminal, Play, RotateCcw, Copy, Flame, Lock } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, CheckCircle2, Terminal, Play, RotateCcw, Copy, Flame, Lock, Shield } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CourseDay, UserProgress } from '../types';
@@ -14,9 +14,10 @@ interface CourseViewProps {
   onToggleCompleteDay: (dayId: number) => void;
   onSelectDay: (dayId: number) => void;
   unlockedDays: number[];
+  isAdminAuthenticated: boolean;
 }
 
-export default function CourseView({ dayId, progress, onToggleCompleteDay, onSelectDay, unlockedDays }: CourseViewProps) {
+export default function CourseView({ dayId, progress, onToggleCompleteDay, onSelectDay, unlockedDays, isAdminAuthenticated }: CourseViewProps) {
   const currentDay = courseDays.find(d => d.id === dayId) || courseDays[0];
   const isCompleted = progress.completedDays.includes(currentDay.id);
   const isLocked = !unlockedDays.includes(currentDay.id);
@@ -286,6 +287,19 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
             ))}
           </ul>
         </div>
+
+        {/* Admin/Teacher Guide */}
+        {isAdminAuthenticated && currentDay.adminGuide && (
+          <div className="bg-amber-50/50 border-2 border-amber-200/60 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-bl-full -z-10"></div>
+            <h3 className="text-amber-800 font-black uppercase tracking-widest text-xs mb-4 flex items-center gap-2">
+              <Shield className="h-4.5 w-4.5 text-amber-600" /> Guide de l'Instructeur
+            </h3>
+            <div className="prose prose-sm prose-amber max-w-none text-amber-900/90 leading-relaxed font-sans">
+              <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{currentDay.adminGuide}</Markdown>
+            </div>
+          </div>
+        )}
 
         {/* Core Lesson Text */}
         <div className="prose prose-slate max-w-none text-slate-700">

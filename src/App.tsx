@@ -503,6 +503,7 @@ export default function App() {
               onToggleCompleteDay={handleToggleCompleteDay}
               onSelectDay={setSelectedDayId}
               unlockedDays={unlockedDays}
+              isAdminAuthenticated={isAdminAuthenticated}
             />
           )}
 

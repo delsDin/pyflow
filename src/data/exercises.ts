@@ -283,6 +283,78 @@ nom = "Guido"
     ],
     validationKeywords: ['message', 'print', 'Guido']
   },
+  {
+    id: 'challenge_1_3',
+    dayId: 1,
+    title: 'Convertisseur Temporel',
+    description: 'Convertissez un grand nombre de secondes en un format lisible Heures / Minutes / Secondes.',
+    instructions: [
+      'Déclarez une variable "total_secondes" avec la valeur 7384',
+      'Calculez le nombre d’heures pleines avec la division entière // (3600 secondes par heure) dans "heures"',
+      'Récupérez le reste des secondes avec l’opérateur modulo % dans "reste_secondes"',
+      'Calculez le nombre de minutes pleines avec // (60 secondes) dans "minutes"',
+      'Calculez les secondes finales avec % dans "secondes_finales"',
+      'Affichez le résultat avec une f-string'
+    ],
+    initialCode: `# Variables de départ
+total_secondes = 7384
+
+# 1. Calcul des heures pleines
+
+
+# 2. Calcul du reste des secondes
+
+
+# 3. Calcul des minutes pleines
+
+
+# 4. Calcul des secondes finales
+
+
+# 5. Affichage avec f-string
+`,
+    testCases: [
+      {
+        input: '',
+        expectedOutput: '7384 secondes correspondent à 2 heure(s), 3 minute(s) et 4 seconde(s).',
+        description: 'Vérification de la conversion correcte en H:M:S'
+      }
+    ],
+    validationKeywords: ['//', '%', 'print']
+  },
+  {
+    id: 'challenge_1_4',
+    dayId: 1,
+    title: 'Simulateur d’Investissement',
+    description: 'Calculez et affichez les intérêts composés sur 10 ans.',
+    instructions: [
+      'Déclarez "capital = 1500.0", "taux = 0.05" et "annees = 10"',
+      'Calculez "montant_final" avec la formule: Capital * (1 + Taux) puissance Années',
+      'Calculez le "profit_pur" (Montant final - Capital initial)',
+      'Affichez les deux résultats'
+    ],
+    initialCode: `# Paramètres de l'investissement
+capital = 1500.0
+taux = 0.05
+annees = 10
+
+# 1. Calculez le montant_final (Formule: C * (1 + t)^a )
+
+
+# 2. Calculez le profit_pur
+
+
+# 3. Affichez les résultats
+`,
+    testCases: [
+      {
+        input: '',
+        expectedOutput: 'Après 10 ans, le capital sera de 2443.341940166163 euros.\\nLe profit généré est de 943.3419401661631 euros.',
+        description: 'Vérification du calcul des intérêts'
+      }
+    ],
+    validationKeywords: ['**', 'print', 'montant_final', 'profit_pur']
+  },
 
   // --- JOUR 2 ---
   {
@@ -484,7 +556,7 @@ export function generateDayChallenges(dayId: number): CodingChallenge[] {
   // Check if we have handcrafted challenges
   const existing = manualChallenges.filter(c => c.dayId === dayId);
   if (existing.length >= 2) {
-    return existing.slice(0, 2);
+    return existing;
   }
 
   const generated: CodingChallenge[] = [...existing];

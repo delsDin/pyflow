@@ -163,7 +163,97 @@ Calculs de référence sur 7 et 2 :
  - Division réelle : 3.5
  - Division entière : 3
  - Reste restant (Modulo) : 1
- - 2 à la puissance 10 vaut : 1024`
+ - 2 à la puissance 10 vaut : 1024`,
+    adminGuide: `### 🎯 Guide de l'Instructeur (Ultra-Détaillé) : Jour 1
+
+Ce guide est votre fil rouge pour l'animation du Jour 1. Il contient des explications enrichies, des concepts sous-jacents absents du cours étudiant (pour répondre aux questions avancées), et des exercices de soutien prêts à l'emploi.
+
+#### 1. Plan d'Animation Conseillé (Durée cible : 2h)
+1. **Introduction (15 min)** : Accueil, présentation de Python, démystification de la programmation.
+2. **Setup Environnement (30 min)** : Accompagnement à l'installation (VS Code + Python). Point critique de la journée.
+3. **Le modèle d'exécution (15 min)** : Compilation vs Interprétation (concept de Machine Virtuelle).
+4. **La pratique (45 min)** : \`print\`, \`input\` et création de variables.
+5. **Q&A et Exercice Bonus (15 min)** : Évaluation de la compréhension.
+
+---
+
+#### 2. L'Histoire Détaillée de Python (Culture Générale Enseignant)
+*Pour briser la glace ou répondre aux passionnés, voici l'histoire approfondie du langage :*
+
+- **L'origine (Noël 1989)** : Guido van Rossum s'ennuyait pendant ses vacances de Noël. Il travaillait au CWI (Centre de Mathématiques et d'Informatique) d'Amsterdam sur le système d'exploitation Amoeba. Il cherchait un langage de script capable d'accéder aux appels système d'Amoeba, qui serait un descendant du langage **ABC** (un langage pensé pour l'enseignement, très lisible, mais impossible à étendre).
+- **Le nom "Python"** : Ce n'est pas le serpent ! Guido lisait les scripts publiés du célèbre groupe de comédie britannique *Monty Python's Flying Circus*. Il voulait un nom de langage "court, unique et légèrement mystérieux". C'est pourquoi la documentation officielle regorge d'exemples de code utilisant des mots comme \`spam\` et \`eggs\` au lieu de \`foo\` et \`bar\`.
+- **BDFL (Benevolent Dictator For Life)** : En 1995, Guido est nommé BDFL de Python par la communauté. Il a pris la décision finale sur toutes les évolutions du langage jusqu'en 2018, date à laquelle il s'est retiré pour laisser place à un conseil directeur (*Steering Council*).
+- **Le Schisme Python 2 vs Python 3 (2008-2020)** :
+  - *Le contexte* : Python 2 était devenu chaotique (gestion du texte vs binaire défaillante, duplications d'instructions). Guido a décidé de publier **Python 3.0** en 2008, un langage plus propre, mais **volontairement non-rétrocompatible** avec Python 2.
+  - *La crise* : Ce fut un désastre initial. Les entreprises refusaient de migrer car leur code allait casser. La migration globale a pris 12 ans ! La fin de vie officielle (EOL) de Python 2 n'a eu lieu qu'en Janvier 2020. Aujourd'hui, on ne développe **que** sur Python 3.
+
+---
+
+#### 3. Concepts Avancés (Hors-Cours) pour l'Enseignant
+*Ces éléments ne sont pas dans le cours de l'étudiant, mais vous permettent d'avoir de l'avance et d'étoffer vos réponses face aux étudiants curieux.*
+
+- **Le GIL (Global Interpreter Lock)** :
+  - *Sujet* : "Est-ce que Python est rapide ?"
+  - *Explication enseignant* : CPython utilise un "Verrou Global" (GIL) qui empêche plusieurs threads d'exécuter du bytecode Python simultanément sur plusieurs cœurs du processeur. C'est pourquoi Python n'est pas optimal pour le multithreading CPU-intensif, mais excelle dans l'asynchrone ou en déléguant les calculs lourds à des bibliothèques C (comme NumPy).
+- **Le Garbage Collector (Ramasse-miettes)** :
+  - *Sujet* : "Doit-on détruire les variables pour vider la RAM ?"
+  - *Explication enseignant* : Contrairement au C++, Python utilise un système de **comptage de références**. Quand plus aucune étiquette (variable) ne pointe vers une donnée en mémoire, le *Garbage Collector* la supprime automatiquement. Vous pouvez illustrer cela avec la commande \`del variable\`.
+- **Typage Dynamique vs Fort** :
+  - *Sujet* : Beaucoup de débutants confondent "dynamique" et "faible".
+  - *Explication enseignant* : En JavaScript (typage faible), \`"1" + 1\` donne \`"11"\`. En Python (typage fort), \`"1" + 1\` provoque une **Erreur**. Le typage dynamique signifie juste qu'on ne déclare pas le type à la création, mais l'interpréteur est très strict sur les opérations permises !
+
+---
+
+#### 3. Décryptage de la phrase clé (Dictionnaire Pédagogique)
+*Au début du cours, les étudiants lisent : "Python est un langage de haut niveau, interprété, multiparadigme et typé dynamiquement". Voici comment leur décortiquer cette carte d'identité :*
+
+- **De haut niveau (High-level)** : 
+  - *Explication* : Python s'occupe de la gestion complexe en arrière-plan (comme l'allocation de la RAM). Le code est proche de l'anglais, permettant à l'étudiant de se concentrer sur la logique et non sur la machine.
+- **Interprété vs Compilé (AOT)** : 
+  - *Métaphore* : Le compilateur (C++) est un traducteur littéraire : il traduit tout le livre en une seule fois avant publication (l'exécutable \`.exe\`). S'il y a une faute à la dernière page, le livre refuse de s'imprimer. L'interpréteur (Python), lui, est un traducteur simultané à l'ONU : il écoute et traduit ligne par ligne à la volée. S'il y a une erreur à la ligne 10, les lignes 1 à 9 s'exécuteront quand même !
+- **Multiparadigme** :
+  - *Explication* : Python est flexible et ne force pas un style de programmation unique. On peut coder de manière *procédurale* (une suite de commandes), *orientée objet* (en modélisant des concepts avec des Classes), ou *fonctionnelle*.
+- **Typé dynamiquement** :
+  - *Explication* : Pas besoin de déclarer \`int age = 18;\` comme en Java. On écrit \`age = 18\`, et l'interpréteur devine et assigne dynamiquement le type au moment de l'exécution en observant la donnée.
+- **Variable (Référence)** :
+  - *Métaphore* : Ne parlez pas de "boîtes". Parlez d'**étiquettes adhésives**. En Python, \`a = 5\` signifie : *Créer l'objet mémoire 5, et coller l'étiquette 'a' dessus*. Si on fait \`b = a\`, on colle simplement l'étiquette 'b' sur le même objet mémoire 5. Montrez-leur la fonction hors-programme \`id(a)\` pour prouver que les deux variables ont la même adresse mémoire !
+- **PEP 8 (Python Enhancement Proposal 8)** :
+  - *Définition* : C'est le guide de style officiel de Python. Il dicte comment espacer le code, nommer les variables (en \`snake_case\`), etc. Mentionnez-le pour les inciter à écrire un code "propre" dès le jour 1.
+
+---
+
+#### 4. Foire Aux Questions (FAQ) Typique
+- **Q : "Pourquoi utiliser VS Code plutôt que l'IDLE officiel de Python ?"**
+  *Réponse :* "L'IDLE est un bac à sable pédagogique. VS Code est un outil professionnel industriel. Autant apprendre directement avec l'outil que vous utiliserez en entreprise, avec ses extensions surpuissantes (comme Pylance)."
+- **Q : "Pourquoi mon code fait un \`SyntaxError: invalid character in identifier\` ?"**
+  *Réponse :* L'étudiant a souvent copié/collé du code depuis un PDF ou Word qui utilise des guillemets typographiques (les guillemets inclinés \`« »\` ou \`“ ”\`) au lieu des guillemets informatiques droits (\`"\`).
+- **Q : "À quoi sert \`input()\` si on ne peut pas faire de calculs avec ?"**
+  *Réponse :* \`input()\` récupère ce que l'utilisateur tape sur son clavier. Or, un clavier ne produit QUE du texte (même si on tape des chiffres). C'est pourquoi on doit *caster* (convertir) ce texte avec \`int()\` ou \`float()\` avant de calculer.
+
+---
+
+#### 5. Exercices Bonus "Live" (Prêts à l'emploi)
+
+**Exercice A : L'illusion de l'addition (Pour illustrer le casting)**
+*Demandez aux élèves de coder ceci sans expliquer l'erreur :*
+\`\`\`python
+prix = input("Entrez le prix : ")
+taxe = input("Entrez la taxe : ")
+print("Le total est de :", prix + taxe)
+\`\`\`
+*Effet attendu :* Si on tape 10 et 5, le résultat affiché est "105" au lieu de 15.
+*Débriefing :* L'opérateur \`+\` sur des chaînes de caractères (\`str\`) fait de la **concaténation** (coller les textes). Corrigez avec eux en ajoutant \`int(prix) + int(taxe)\`.
+
+**Exercice B : Le Calcul de l'Âge (Pour valider les variables)**
+*Consigne :* Crée un script demandant le prénom, puis l'année de naissance. Affiche un message personnalisé avec l'âge estimé de la personne en 2030.
+\`\`\`python
+# Solution enseignant
+prenom = input("Comment tu t'appelles ? ")
+annee = int(input("Ton année de naissance ? "))
+age_en_2030 = 2030 - annee
+print(f"{prenom}, en 2030 tu auras {age_en_2030} ans !")
+\`\`\`
+*(Vérifiez bien qu'ils utilisent les f-strings, beaucoup plus lisibles que les virgules).*`
   },
   {
     id: 2,

@@ -9,6 +9,7 @@ export interface CourseDay {
   contentMarkdown: string;
   codeExample: string;
   expectedOutput: string;
+  adminGuide?: string;
 }
 
 export interface QuizQuestion {
