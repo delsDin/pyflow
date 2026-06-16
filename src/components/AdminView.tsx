@@ -501,7 +501,8 @@ export default function AdminView({
                 const isSelected = s.id === selectedStudentId;
                 const daysCount = s.pyflow_unlocked_days.length;
                 const projCount = s.pyflow_unlocked_projects.length;
-                const progress = s.pyflow_progress?.[0];
+                const rawProgress = s.pyflow_progress;
+                const progress = Array.isArray(rawProgress) ? rawProgress[0] : rawProgress;
                 return (
                   <div key={s.id}
                     onClick={() => setSelectedStudentId(isSelected ? null : s.id)}
@@ -673,7 +674,8 @@ export default function AdminView({
                   </div>
                 </>
               ) : (() => {
-                const prog = selectedStudent.pyflow_progress?.[0] || {
+                const rawProg = selectedStudent.pyflow_progress;
+                const prog = (Array.isArray(rawProg) ? rawProg[0] : rawProg) || {
                   streak: 0,
                   last_active_date: null,
                   completed_days: [],
