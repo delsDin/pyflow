@@ -451,7 +451,93 @@ print(f"Tarif appliqué : {tarif}€")`,
     expectedOutput: `--- Vérification d'Éligibilité Cinéma ---
 Statut : Mineur
 Heure demandée : 19h
-Tarif appliqué : 11.5€`
+Tarif appliqué : 11.5€`,
+    adminGuide: `### 🎯 Guide de l'Instructeur (Ultra-Détaillé) : Jour 2
+
+Ce guide est votre plan de route pour animer la session sur les Conditions et la Logique. Il fournit des explications détaillées, de la culture générale informatique, et des exercices pratiques prêts à l'emploi pour enrichir votre cours.
+
+#### 1. Plan d'Animation Conseillé (Durée cible : 2h)
+1. **Rappel du Jour 1 & Échauffement (15 min)** : Revoir la saisie de données et la conversion de type (casting).
+2. **Les Booléens et Comparateurs (25 min)** : Définir la logique binaire et le piège du double égal \`==\`.
+3. **L'Aiguillage conditionnel (35 min)** : Structure \`if/elif/else\`. Insister lourdement sur la règle d'indentation de Python.
+4. **Les Opérateurs Logiques (30 min)** : Combiner des conditions avec \`and\`, \`or\`, \`not\` et expliquer le court-circuit.
+5. **Q&A et Mise en pratique collective (15 min)** : Résolution en direct de cas réels.
+
+---
+
+#### 2. Culture & Concepts Avancés pour l'Enseignant
+*Pour répondre avec aplomb aux questions techniques des étudiants curieux :*
+
+- **La "Truthiness" (Évaluation en contexte booléen)** :
+  - *Concept* : En Python, toute valeur possède une valeur booléenne implicite. On appelle cela "Truthy" ou "Falsy".
+  - *Explication enseignant* : Les valeurs considérées comme **Falsy** sont : \`None\`, \`False\`, le nombre \`0\` (sous toutes ses formes : 0, 0.0), les collections vides (chaînes de caractères \`""\`, listes \`[]\`, dictionnaires \`{}\`). Tout le reste est **Truthy**. Ainsi, au lieu d'écrire \`if len(chaine) > 0:\`, les développeurs Python chevronnés écrivent simplement \`if chaine:\`.
+- **L'opérateur d'identité \`is\` vs l'opérateur d'égalité \`==\`** :
+  - *Concept* : \`==\` vérifie si les valeurs sont égales. \`is\` vérifie si les deux variables pointent vers le même objet exact en mémoire (vérifie \`id(a) == id(b)\`).
+  - *Explication enseignant* : 
+    \`\`\`python
+    a = [1, 2]
+    b = [1, 2]
+    print(a == b) # True (valeurs identiques)
+    print(a is b) # False (deux listes distinctes en mémoire)
+    \`\`\`
+    Insistez sur le fait que \`is\` ne doit être utilisé que pour comparer des singletons, typiquement \`None\` (ex: \`if x is None:\`).
+- **Le Pattern Matching Structurel (Python 3.10+)** :
+  - *Concept* : L'instruction \`match / case\` équivalente au switch/case d'autres langages.
+  - *Explication enseignant* : Introduit récemment, il permet non seulement de comparer des valeurs simples, mais aussi de filtrer selon la structure des objets ou des types. C'est une excellente alternative aux longs blocs d'\`elif\`.
+
+---
+
+#### 3. Décryptage de la phrase clé (Dictionnaire Pédagogique)
+- **Indentation** : 
+  - *Explication* : En Python, l'indentation n'est pas juste là pour faire joli (contrairement à C++ ou JS) ; elle définit les blocs logiques du programme. Une indentation incohérente produit un \`IndentationError\`. Utilisez 4 espaces (recommandé par la PEP 8).
+- **Court-circuit logique (Short-circuiting)** :
+  - *Explication* : Dans un \`and\`, si le premier membre est faux, l'ensemble est d'office faux, donc le second n'est pas évalué. Dans un \`or\`, si le premier membre est vrai, l'ensemble est certain d'être vrai. Python ignore l'évaluation de B. Cela permet d'écrire des gardes robustes comme : \`if denominateur != 0 and (numerateur / denominateur) > 2:\` sans risquer de division par zéro !
+- **Précédence des opérateurs** :
+  - *Explication* : L'opérateur \`not\` est prioritaire sur \`and\`, qui est lui-même prioritaire sur \`or\`. Utilisez des parenthèses pour rendre vos intentions de calcul explicites et faciles à lire pour tout le monde.
+
+---
+
+#### 4. Foire Aux Questions (FAQ) Typique
+- **Q : "Pourquoi ai-je une erreur \`SyntaxError: cannot assign to expression\` dans ma condition ?"**
+  *Réponse :* "Tu as écrit \`if age = 18:\` au lieu de \`if age == 18:\`. Un simple signe égal est réservé pour donner une valeur à une variable, pas pour tester l'égalité."
+- **Q : "Est-ce qu'on peut écrire des conditions sur une seule ligne ?"**
+  *Réponse :* Oui, grâce à l'opérateur ternaire : \`statut = "Majeur" if age >= 18 else "Mineur"\`. C'est très utile pour des affectations simples et directes.
+- **Q : "Quelle est la différence entre \`elif\` et une suite de \`if\` simples ?"**
+  *Réponse :* Les \`if\` consécutifs sont évalués de manière totalement indépendante (plusieurs branches de code peuvent être exécutées). Les \`elif\` s'excluent mutuellement : dès qu'une condition est vraie, Python ignore toutes les suivantes.
+
+---
+
+#### 5. Exercices Bonus "Live" (Prêts à l'emploi)
+
+**Exercice A : Détecteur d'années bissextiles (Niveau Moyen)**
+*Consigne :* Créez un programme qui demande une année à l'utilisateur et détermine si elle est bissextile (divisible par 4, mais pas par 100 sauf si elle est aussi divisible par 400).
+\`\`\`python
+annee = int(input("Entrez une année : "))
+if (annee % 4 == 0 and annee % 100 != 0) or (annee % 400 == 0):
+    print(f"L'année {annee} est bissextile !")
+else:
+    print(f"L'année {annee} n'est pas bissextile.")
+\`\`\`
+
+**Exercice B : La Caisse de Cinéma (Niveau Difficile)**
+*Consigne :* Écrivez un script qui demande l'âge de l'utilisateur et s'il possède une carte de réduction. Le tarif normal est de 10€. Les moins de 18 ans paient 6€. Les porteurs de la carte bénéficient de 20% de réduction sur leur tarif d'éligibilité.
+\`\`\`python
+age = int(input("Votre âge : "))
+carte = input("Carte de réduction (oui/non) : ").lower() == "oui"
+
+if age < 18:
+    tarif_base = 6.0
+else:
+    tarif_base = 10.0
+
+if carte:
+    tarif_final = tarif_base * 0.8
+else:
+    tarif_final = tarif_base
+
+print(f"Le tarif appliqué est de : {tarif_final:.2f}€")
+\`\`\`
+`
   },
   {
     id: 3,

@@ -72,7 +72,9 @@ export default function App() {
   // Access control state loaded from local persistence
   const [unlockedDays, setUnlockedDays] = useState<number[]>([]);
   const [unlockedProjects, setUnlockedProjects] = useState<string[]>([]);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    return getStoredStudentCode() === 'PYFLOW-ADMIN-PY';
+  });
 
   // Student identity & gate
   const [studentName, setStudentName] = useState<string | null>(null);
@@ -95,6 +97,9 @@ export default function App() {
 
     const studentCode = getStoredStudentCode();
     if (studentCode) {
+      if (studentCode === 'PYFLOW-ADMIN-PY') {
+        setIsAdminAuthenticated(true);
+      }
       fetchStudentAccess(studentCode)
         .then(({ student, unlocked_days, unlocked_projects }) => {
           setStudentName(student.name);
@@ -143,6 +148,9 @@ export default function App() {
     
     const studentCode = getStoredStudentCode();
     if (studentCode) {
+      if (studentCode === 'PYFLOW-ADMIN-PY') {
+        setIsAdminAuthenticated(true);
+      }
       fetchStudentProgress(studentCode)
         .then((dbProgress) => {
           if (dbProgress) {
@@ -163,6 +171,7 @@ export default function App() {
     setStudentName(null);
     setUnlockedDays([]);
     setUnlockedProjects([]);
+    setIsAdminAuthenticated(false);
   };
 
   const handleUpdateUnlockedDays = (days: number[]) => {
