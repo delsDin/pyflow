@@ -15,9 +15,9 @@ import {
   CheckCircle,
   Code
 } from 'lucide-react';
-import { PythonHighlighter } from '../utils/pythonHighlighter';
 import { runPythonCode } from '../utils/pythonRunner';
-import { handleEditorKeyDown } from '../utils/editorUtils';
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
 
 // Default files in the simulated Linux virtual filesystem
 const DEFAULT_VFS: Record<string, string> = {
@@ -167,9 +167,9 @@ export default function TerminalView() {
   };
 
   // Execute the code using PyFlow's standard sandbox runtime
-  const executePythonScript = (filename: string, pythonCode: string) => {
+  const executePythonScript = async (filename: string, pythonCode: string) => {
     try {
-      const result = runPythonCode(pythonCode);
+      const result = await runPythonCode(pythonCode);
       if (result.success) {
         if (result.stdout) {
           appendTerminalLine('output', result.stdout);
@@ -231,7 +231,7 @@ export default function TerminalView() {
   };
 
   // Interactive Python interpreter step execution
-  const handlePythonReplInput = (input: string) => {
+  const handlePythonReplInput = async (input: string) => {
     const trimmed = input.trim();
 
     // Check exit trigger
@@ -264,7 +264,7 @@ export default function TerminalView() {
     try {
       // Assemble single line commands or store in accumulator if block detection is desired
       // For instant feedback react-runner logic:
-      const replResult = runPythonCode(input);
+      const replResult = await runPythonCode(input, true);
       if (replResult.success) {
         if (replResult.stdout) {
           setHistory(prev => [...prev, { type: 'output', content: replResult.stdout }]);
@@ -491,20 +491,7 @@ export default function TerminalView() {
     }
   }, [history]);
 
-  // Handle textarea/pre custom styling sync
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
 
-  const syncScroll = () => {
-    if (textareaRef.current && preRef.current) {
-      preRef.current.scrollTop = textareaRef.current.scrollTop;
-      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
-
-  // Generate line numbers column based on code content
-  const codeLinesNumCount = editorCode.split('\n').length;
-  const lineNumbersArray = Array.from({ length: codeLinesNumCount }, (_, i) => i + 1);
 
   return (
     <div className="space-y-6" id="linux-terminal-sandbox-view">
@@ -625,45 +612,36 @@ export default function TerminalView() {
                 </div>
               </div>
 
-              {/* Textarea code editor with real functional Tab support inside PyFlow */}
-              <div className="relative border border-slate-200 rounded-xl overflow-hidden bg-slate-950 font-mono shadow-inner h-[380px]">
-                <div className="absolute top-0 bottom-0 left-0 w-12 bg-slate-900 border-r border-slate-850 flex flex-col items-center py-4 text-slate-500 text-[10px] select-none text-right pr-2 leading-relaxed">
-                  {lineNumbersArray.map(n => (
-                    <div key={n} className="w-full">{n}</div>
-                  ))}
-                </div>
-
-                <div className="absolute inset-y-0 left-12 right-0">
-                  <textarea
-                    ref={textareaRef}
-                    value={editorCode}
-                    onChange={(e) => {
-                      setEditorCode(e.target.value);
-                      setIsSaved(false);
-                    }}
-                    onKeyDown={(e) => {
-                      // Save shortcut (Ctrl+S / Cmd+S)
-                      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-                      if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === 's') {
-                        e.preventDefault();
-                        handleSaveFile();
-                        return;
-                      }
-                      handleEditorKeyDown(e, editorCode, setEditorCode);
-                      setIsSaved(false);
-                    }}
-                    onScroll={syncScroll}
-                    className="absolute inset-0 w-full h-full bg-transparent border-none outline-hidden resize-none p-4 font-mono text-xs leading-relaxed text-transparent caret-slate-100 focus:ring-0 whitespace-pre z-10 overflow-auto scrollbar-thin"
-                    spellCheck="false"
-                  />
-                  
-                  <pre
-                    ref={preRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none p-4 font-mono text-xs leading-relaxed text-slate-100 whitespace-pre overflow-hidden bg-transparent"
-                  >
-                    <PythonHighlighter code={editorCode} />
-                  </pre>
-                </div>
+              {/* Textarea code editor replaced with robust CodeMirror */}
+              <div 
+                className="border border-slate-200 rounded-xl overflow-hidden shadow-inner"
+                onKeyDown={(e) => {
+                  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                  if ((isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    handleSaveFile();
+                  }
+                }}
+              >
+                <CodeMirror
+                  value={editorCode}
+                  height="380px"
+                  extensions={[python()]}
+                  onChange={(val) => {
+                    setEditorCode(val);
+                    setIsSaved(false);
+                  }}
+                  theme="dark"
+                  className="text-xs font-mono"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: false,
+                    highlightActiveLine: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    autocompletion: true,
+                  }}
+                />
               </div>
 
               {/* Editor Keyboard shortcuts details footer */}
@@ -697,7 +675,7 @@ export default function TerminalView() {
                 <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block"></span>
                 <span className="h-4 w-[1px] bg-slate-800 mx-1.5"></span>
                 <Terminal className="h-4 w-4 text-slate-400" />
-                <span className="text-[11px] font-semibold font-mono text-slate-350 tracking-wide uppercase">
+                <span className="text-[11px] font-semibold font-mono text-slate-300 tracking-wide uppercase">
                   {mode === 'python' ? 'Interactive Python REPL' : 'bash - user@pyflow:~'}
                 </span>
               </div>
@@ -719,7 +697,7 @@ export default function TerminalView() {
             </div>
 
             {/* Terminal Screen Console prompt lines logs */}
-            <div className="p-4 flex-1 overflow-y-auto font-mono text-xs leading-relaxed space-y-1.5 custom-scrollbar text-slate-250 select-text">
+            <div className="p-4 flex-1 overflow-y-auto font-mono text-xs leading-relaxed space-y-1.5 custom-scrollbar text-slate-300 select-text">
               {history.map((line, i) => {
                 if (line.type === 'input') {
                   const isPythonPref = line.content.startsWith('>>>');

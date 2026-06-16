@@ -6,7 +6,8 @@ import { CourseDay, UserProgress } from '../types';
 import { courseDays } from '../data/curriculum';
 import { PythonHighlighter } from '../utils/pythonHighlighter';
 import { runPythonCode } from '../utils/pythonRunner';
-import { handleEditorKeyDown } from '../utils/editorUtils';
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
 
 interface CourseViewProps {
   dayId: number;
@@ -28,29 +29,10 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
   const [isRunning, setIsRunning] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
-
-  const syncScroll = () => {
-    if (textareaRef.current && preRef.current) {
-      preRef.current.scrollTop = textareaRef.current.scrollTop;
-      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
-
   // Reset code when changing day
   useEffect(() => {
     setCode(currentDay.codeExample);
     setOutput('');
-    // Reset scroll values
-    setTimeout(() => {
-      if (textareaRef.current && preRef.current) {
-        textareaRef.current.scrollTop = 0;
-        textareaRef.current.scrollLeft = 0;
-        preRef.current.scrollTop = 0;
-        preRef.current.scrollLeft = 0;
-      }
-    }, 50);
   }, [currentDay]);
 
   if (isLocked) {
@@ -107,22 +89,20 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
     );
   }
 
-  const handleRunCode = () => {
+  const handleRunCode = async () => {
     setIsRunning(true);
     setOutput('Initialisation de l\'interpréteur Python v3.11...\n');
-    setTimeout(() => {
-      try {
-        const result = runPythonCode(code);
-        if (result.success) {
-          setOutput(`Exécution réussie.\n--------------------------\n${result.stdout || '(Le script n’a rien imprimé en sortie)'}`);
-        } else {
-          setOutput(`Erreur d'exécution.\n--------------------------\n${result.error || 'Erreur inconnue.'}`);
-        }
-      } catch (err: any) {
-        setOutput(`Erreur système de l'interpréteur :\n${err.message || err}`);
+    try {
+      const result = await runPythonCode(code);
+      if (result.success) {
+        setOutput(`Exécution réussie.\n--------------------------\n${result.stdout || '(Le script n’a rien imprimé en sortie)'}`);
+      } else {
+        setOutput(`Erreur d'exécution.\n--------------------------\n${result.error || 'Erreur inconnue.'}`);
       }
-      setIsRunning(false);
-    }, 450);
+    } catch (err: any) {
+      setOutput(`Erreur système de l'interpréteur :\n${err.message || err}`);
+    }
+    setIsRunning(false);
   };
 
   const handleResetCode = () => {
@@ -340,7 +320,7 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
           <div className="bg-slate-950 px-4 py-3 flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-2">
               <Terminal className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs font-mono font-bold text-slate-350 tracking-wide">
+              <span className="text-xs font-mono font-bold text-slate-300 tracking-wide">
                 playground.py
               </span>
             </div>
@@ -364,25 +344,22 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
           </div>
 
           {/* Interactive Code Area */}
-          <div className="relative bg-slate-950 font-mono text-xs leading-relaxed h-56 border-b border-slate-800/80 overflow-hidden">
-            {/* Syntax Highlighter Display layer */}
-            <pre
-              ref={preRef}
-              className="absolute inset-0 p-4 font-mono text-xs leading-relaxed text-slate-300 overflow-hidden whitespace-pre pointer-events-none select-none z-0 bg-transparent"
-            >
-              <code>
-                <PythonHighlighter code={code} />
-              </code>
-            </pre>
-            {/* Edit Input layer */}
-            <textarea
-              ref={textareaRef}
+          <div className="border-b border-slate-800/80 overflow-hidden">
+            <CodeMirror
               value={code}
-              onChange={(e) => setCode(e.target.value)}
-              onKeyDown={(e) => handleEditorKeyDown(e, code, setCode)}
-              onScroll={syncScroll}
-              className="absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none p-4 font-mono text-xs leading-relaxed text-transparent caret-slate-100 focus:ring-0 whitespace-pre z-10 overflow-auto scrollbar-thin"
-              spellCheck="false"
+              height="224px"
+              extensions={[python()]}
+              onChange={(val) => setCode(val)}
+              theme="dark"
+              className="text-xs font-mono"
+              basicSetup={{
+                lineNumbers: true,
+                foldGutter: false,
+                highlightActiveLine: true,
+                bracketMatching: true,
+                closeBrackets: true,
+                autocompletion: true,
+              }}
             />
           </div>
 
@@ -406,7 +383,7 @@ export default function CourseView({ dayId, progress, onToggleCompleteDay, onSel
               {output ? (
                 <span>{output}</span>
               ) : (
-                <span className="text-slate-550 italic">
+                <span className="text-slate-500 italic">
                   Cliquez sur "Lancer le code" pour exécuter l'exemple de code officiel Python.
                 </span>
               )}

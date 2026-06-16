@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import { Award, CheckCircle2, AlertCircle, Play, RotateCcw, HelpCircle, Check, Terminal, BookOpen, ShieldAlert, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Award, CheckCircle2, AlertCircle, Play, RotateCcw, HelpCircle, Check, Terminal, BookOpen, ShieldAlert, Lock, Sparkles } from 'lucide-react';
 import { QuizQuestion, CodingChallenge, UserProgress } from '../types';
 import { quizQuestions, codingChallenges } from '../data/exercises';
 import { courseDays } from '../data/curriculum';
-import { PythonHighlighter } from '../utils/pythonHighlighter';
 import { runPythonCode } from '../utils/pythonRunner';
-import { handleEditorKeyDown } from '../utils/editorUtils';
+import { evaluateCodeWithGemini, GeminiEvaluationResult } from '../utils/geminiEvaluator';
+import CodeMirror from '@uiw/react-codemirror';
+import { python } from '@codemirror/lang-python';
+import ReactMarkdown from 'react-markdown';
 
 interface ExerciseViewProps {
   dayId: number;
@@ -78,16 +80,11 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
   const [terminalOutput, setTerminalOutput] = useState<string>('');
   const [testsLoading, setTestsLoading] = useState(false);
   const [testResults, setTestResults] = useState<{ success: boolean; score: number; details: string[] } | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<GeminiEvaluationResult | null>(null);
+  const [codeRunning, setCodeRunning] = useState(false);
+  const [showCorrection, setShowCorrection] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const preRef = useRef<HTMLPreElement>(null);
 
-  const syncScroll = () => {
-    if (textareaRef.current && preRef.current) {
-      preRef.current.scrollTop = textareaRef.current.scrollTop;
-      preRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-  };
 
   const handleSelectQuiz = (idx: number) => {
     if (isQuizLocked(idx)) return;
@@ -111,15 +108,8 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
       setUserCode(activeChallenge.initialCode);
       setTerminalOutput('');
       setTestResults(null);
-      // Reset scroll
-      setTimeout(() => {
-        if (textareaRef.current && preRef.current) {
-          textareaRef.current.scrollTop = 0;
-          textareaRef.current.scrollLeft = 0;
-          preRef.current.scrollTop = 0;
-          preRef.current.scrollLeft = 0;
-        }
-      }, 50);
+      setAiFeedback(null);
+      setShowCorrection(false);
     }
   }, [dayId, selectedChallengeIdx, directoryFilter]);
 
@@ -138,33 +128,52 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
     }
   };
 
-  const handleTestChallenge = () => {
+  const handleRunCode = async () => {
+    if (!activeChallenge) return;
+    setCodeRunning(true);
+    setTerminalOutput('Initialisation de l\'interpréteur Python v3.11...\n');
+    try {
+      const result = await runPythonCode(userCode);
+      if (result.success) {
+        setTerminalOutput(`Exécution réussie.\n--------------------------\n${result.stdout || '(Le script n’a rien imprimé en sortie)'}`);
+      } else {
+        setTerminalOutput(`Erreur d'exécution.\n--------------------------\n${result.error || 'Erreur inconnue.'}`);
+      }
+    } catch (err: any) {
+      setTerminalOutput(`Erreur système de l'interpréteur :\n${err.message || err}`);
+    }
+    setCodeRunning(false);
+  };
+
+  const handleTestChallenge = async () => {
     if (!activeChallenge) return;
     setTestsLoading(true);
     setTerminalOutput('Lancement des tests d’exécution et des validations logiques...\n');
+    setAiFeedback(null);
+    setShowCorrection(false);
 
-    setTimeout(() => {
-      const details: string[] = [];
-      let checksPassed = 0;
-      const totalChecks = 2; // Syntax check + Sandbox execution outcome
+    const details: string[] = [];
+    let checksPassed = 0;
+    const totalChecks = 2; // Syntax check + Sandbox execution outcome
 
-      // 1. Keyword syntax check
-      const missingKeywords: string[] = [];
-      for (const kw of activeChallenge.validationKeywords) {
-        if (!userCode.includes(kw)) {
-          missingKeywords.push(kw);
-        }
+    // 1. Keyword syntax check
+    const missingKeywords: string[] = [];
+    for (const kw of activeChallenge.validationKeywords) {
+      if (!userCode.includes(kw)) {
+        missingKeywords.push(kw);
       }
+    }
 
-      if (missingKeywords.length === 0) {
-        checksPassed += 1;
-        details.push(`✔ Structure du script : Présence des expressions obligatoires (${activeChallenge.validationKeywords.join(', ')})`);
-      } else {
-        details.push(`✘ Structure du script : Mots-clés requis manquants : ${missingKeywords.join(', ')}`);
-      }
+    if (missingKeywords.length === 0) {
+      checksPassed += 1;
+      details.push(`✔ Structure du script : Présence des expressions obligatoires (${activeChallenge.validationKeywords.join(', ')})`);
+    } else {
+      details.push(`✘ Structure du script : Mots-clés requis manquants : ${missingKeywords.join(', ')}`);
+    }
 
+    try {
       // 2. Real browser sandbox execution & value verification
-      const result = runPythonCode(userCode);
+      const result = await runPythonCode(userCode);
       const expectedOut = activeChallenge.testCases[0].expectedOutput;
       
       let executionSuccess = false;
@@ -197,25 +206,89 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
         details.push(`✘ Panne d'exécution : L'interpréteur a levé une exception lors du calcul de votre code.`);
       }
 
-      const overallSuccess = checksPassed === totalChecks;
+      let overallSuccess = checksPassed === totalChecks;
+
+      // --- AI-assisted validation and review ---
+      setTerminalOutput(prev => prev + 'Génération de l\'évaluation par le tuteur IA...\n');
+      const geminiResult = await evaluateCodeWithGemini(activeChallenge, userCode, result);
+
+      if (geminiResult !== null) {
+        overallSuccess = geminiResult.isCorrect;
+        setAiFeedback(geminiResult);
+
+        if (overallSuccess) {
+          // Adjust checks passed to match success
+          checksPassed = totalChecks;
+          const filteredDetails = details.map(d => d.startsWith('✘') ? d.replace('✘', '✔ (validé par IA)') : d);
+          setTestResults({
+            success: true,
+            score: 100,
+            details: filteredDetails,
+          });
+          setTerminalOutput(`SUCCÈS : Défi validé par le Tuteur IA !\n\n[ANALYSE DU TUTEUR IA]\n${geminiResult.explanation}\n\n[SORTIE STANDARD]\n${finalStdout || '(Aucune impression)'}`);
+          onPassChallenge(activeChallenge.id, userCode);
+        } else {
+          setTestResults({
+            success: false,
+            score: Math.round((checksPassed / totalChecks) * 100),
+            details,
+          });
+          if (!result.success && result.error) {
+            setTerminalOutput(`ÉCHEC : Erreur détectée dans l'algorithme.\n\n[TRACEBACK PYTHON]\n${result.error}\n\n[ANALYSE DU TUTEUR IA]\n${geminiResult.explanation}`);
+          } else {
+            setTerminalOutput(`ÉCHEC : Les tests de validation ne sont pas entièrement au vert.\n\n[ANALYSE DU TUTEUR IA]\n${geminiResult.explanation}`);
+          }
+        }
+      } else {
+        // Fallback: rule-based feedback
+        setTestResults({
+          success: overallSuccess,
+          score: Math.round((checksPassed / totalChecks) * 100),
+          details,
+        });
+
+        let explanation = '';
+        if (!overallSuccess) {
+          if (missingKeywords.length > 0) {
+            explanation += `• Il manque des mots-clés obligatoires dans votre code : ${missingKeywords.join(', ')}.\n`;
+            explanation += `Assurez-vous de bien respecter la syntaxe requise (ex: utiliser l'expression '${missingKeywords[0]}').\n\n`;
+          }
+          if (result.success && !executionSuccess) {
+            explanation += `• Votre code s'est exécuté sans erreur, mais n'a pas produit le résultat attendu.\n`;
+            explanation += `Valeur attendue : "${expectedOut}".\n`;
+            explanation += `Valeur obtenue : "${result.stdout || 'vide'}".\n\n`;
+          }
+          if (!result.success && result.error) {
+            explanation += `• Une erreur d'exécution s'est produite (voir le traceback ci-dessous).\n`;
+          }
+          setAiFeedback({
+            isCorrect: false,
+            explanation: explanation || "Revoyez l'énoncé de l'exercice et assurez-vous d'avoir respecté toutes les consignes de variables et de calcul.",
+          });
+        }
+
+        if (overallSuccess) {
+          setTerminalOutput(`SUCCÈS : Défi relevé avec brio !\n\n[SORTIE STANDARD]\n${finalStdout || '(Aucune impression)'}\n\n[VALIDATEUR] OK : Vos variables et fonctions correspondent aux spécifications.`);
+          onPassChallenge(activeChallenge.id, userCode);
+        } else {
+          if (!result.success && result.error) {
+            setTerminalOutput(`ÉCHEC : Erreur détectée dans l'algorithme.\n\n[TRACEBACK PYTHON]\n${result.error}\n\nCorrigez la ligne indiquée pour pouvoir valider l'exercice.`);
+          } else {
+            setTerminalOutput(`ÉCHEC : Les tests de validation ne sont pas entièrement au vert.\n\n[SORTIE OBTENUE]\n${finalStdout || '(Vide)'}\n\nRevoyez l'énoncé de l'exercice pour corriger le tir.`);
+          }
+        }
+      }
+    } catch (err: any) {
+      details.push(`✘ Erreur système : ${err.message || err}`);
       setTestResults({
-        success: overallSuccess,
+        success: false,
         score: Math.round((checksPassed / totalChecks) * 100),
         details,
       });
-
-      if (overallSuccess) {
-        setTerminalOutput(`SUCCÈS : Défi relevé avec brio !\n\n[SORTIE STANDARD]\n${finalStdout || '(Aucune impression)'}\n\n[VALIDATEUR] OK : Vos variables et fonctions correspondent aux spécifications.`);
-        onPassChallenge(activeChallenge.id, userCode);
-      } else {
-        if (!result.success && result.error) {
-          setTerminalOutput(`ÉCHEC : Erreur détectée dans l'algorithme.\n\n[TRACEBACK PYTHON]\n${result.error}\n\nCorrigez la ligne indiquée pour pouvoir valider l'exercice.`);
-        } else {
-          setTerminalOutput(`ÉCHEC : Les tests de validation ne sont pas entièrement au vert.\n\n[SORTIE OBTENUE]\n${finalStdout || '(Vide)'}\n\nRevoyez l'énoncé de l'exercice pour corriger le tir.`);
-        }
-      }
+      setTerminalOutput(`ÉCHEC : Une erreur système est survenue lors de l'exécution.`);
+    } finally {
       setTestsLoading(false);
-    }, 550);
+    }
   };
 
   const handleResetChallenge = () => {
@@ -223,6 +296,8 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
     setUserCode(activeChallenge.initialCode);
     setTerminalOutput('');
     setTestResults(null);
+    setAiFeedback(null);
+    setShowCorrection(false);
   };
 
   const isDayLocked = !unlockedDays.includes(dayId);
@@ -623,7 +698,7 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
                 <div className="border border-slate-100 rounded-2xl bg-slate-900 shadow-sm overflow-hidden flex flex-col">
                   {/* Title Header */}
                   <div className="bg-slate-950 px-4 py-3 flex items-center justify-between border-b border-slate-800 text-xs font-mono">
-                    <span className="text-slate-350 flex items-center gap-1.5"><Terminal className="h-4 w-4 text-emerald-500" /> exercice.py</span>
+                    <span className="text-slate-300 flex items-center gap-1.5"><Terminal className="h-4 w-4 text-emerald-500" /> exercice.py</span>
                     <button
                       onClick={handleResetChallenge}
                       className="p-1 text-slate-450 hover:text-white rounded flex items-center gap-0.5 transition-colors"
@@ -634,42 +709,48 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
                   </div>
 
                   {/* Editor block Input with Python Highlighting */}
-                  <div className="relative bg-slate-950 font-mono text-xs leading-relaxed h-72 border-b border-slate-800/80 overflow-hidden">
-                    {/* Highlighted text layer */}
-                    <pre
-                      ref={preRef}
-                      className="absolute inset-0 p-4 font-mono text-xs leading-relaxed text-slate-300 overflow-hidden whitespace-pre pointer-events-none select-none z-0 bg-transparent"
-                    >
-                      <code>
-                        <PythonHighlighter code={userCode} />
-                      </code>
-                    </pre>
-                    {/* Input layer */}
-                    <textarea
-                      ref={textareaRef}
+                  <div className="border-b border-slate-800/80 overflow-hidden">
+                    <CodeMirror
                       value={userCode}
-                      onChange={(e) => setUserCode(e.target.value)}
-                      onKeyDown={(e) => handleEditorKeyDown(e, userCode, setUserCode)}
-                      onScroll={syncScroll}
-                      className="absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none p-4 font-mono text-xs leading-relaxed text-transparent caret-slate-100 focus:ring-0 whitespace-pre z-10 overflow-auto scrollbar-thin"
-                      spellCheck="false"
+                      height="288px"
+                      extensions={[python()]}
+                      onChange={(val) => setUserCode(val)}
+                      theme="dark"
+                      className="text-xs font-mono"
+                      basicSetup={{
+                        lineNumbers: true,
+                        foldGutter: false,
+                        highlightActiveLine: true,
+                        bracketMatching: true,
+                        closeBrackets: true,
+                        autocompletion: true,
+                      }}
                     />
                   </div>
 
                   {/* Compile triggers and Status outputs */}
                   <div className="bg-slate-950 px-4 py-2.5 border-t border-slate-800 flex justify-between items-center text-xs">
                     <span className="text-[10px] text-slate-500 font-mono">Simulateur d'assertions</span>
-                    <button
-                      onClick={handleTestChallenge}
-                      disabled={testsLoading}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <Play className="h-3 w-3 fill-current" /> {testsLoading ? 'Vérification...' : 'Soumettre le code'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleRunCode}
+                        disabled={codeRunning || testsLoading}
+                        className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg flex items-center gap-1 transition-colors cursor-pointer border border-slate-750"
+                      >
+                        <Play className="h-3 w-3 text-slate-400 fill-current" /> {codeRunning ? 'Calcul...' : 'Lancer le code'}
+                      </button>
+                      <button
+                        onClick={handleTestChallenge}
+                        disabled={codeRunning || testsLoading}
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" /> {testsLoading ? 'Vérification...' : 'Soumettre le code'}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Outputs shell terminal */}
-                  <div className="border-t border-slate-800 bg-black min-h-28 p-4 text-xs font-mono text-slate-350 flex flex-col justify-between">
+                  <div className="border-t border-slate-800 bg-black min-h-28 p-4 text-xs font-mono text-slate-300 flex flex-col justify-between">
                     <div className="space-y-1.5 overflow-auto max-h-36 custom-scrollbar whitespace-pre-wrap">
                       {terminalOutput ? (
                         <span>{terminalOutput}</span>
@@ -697,6 +778,61 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
                         <li key={i}>{det}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* AI-powered feedback review */}
+                {aiFeedback && (
+                  <div className="p-4 border border-indigo-100/50 rounded-xl text-xs bg-indigo-50/10 text-slate-800 space-y-3 font-sans shadow-2xs">
+                    <div className="flex items-center gap-1.5 text-indigo-700 font-bold">
+                      <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />
+                      <span>Analyse et conseils du Tuteur IA</span>
+                    </div>
+                    <div className="markdown-content text-slate-650 text-[11.5px] leading-relaxed space-y-2 select-text">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => <p className="mb-2">{children}</p>,
+                          code: ({ children }) => <code className="bg-slate-100 text-rose-600 px-1.5 py-0.5 rounded font-mono text-[10.5px] font-medium">{children}</code>,
+                          ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1.5 my-2.5">{children}</ol>,
+                          ul: ({ children }) => <ul className="list-disc pl-5 space-y-1.5 my-2.5">{children}</ul>,
+                          li: ({ children }) => <li className="marker:text-slate-400">{children}</li>,
+                          strong: ({ children }) => <strong className="font-bold text-slate-800">{children}</strong>
+                        }}
+                      >
+                        {aiFeedback.explanation}
+                      </ReactMarkdown>
+                    </div>
+                    {aiFeedback.suggestedCode && (
+                      <div className="space-y-2 mt-3 pt-3 border-t border-indigo-100/30">
+                        <div className="flex justify-between items-center">
+                          <button
+                            onClick={() => setShowCorrection(!showCorrection)}
+                            className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 font-semibold text-[10px] rounded-md transition-colors cursor-pointer"
+                          >
+                            {showCorrection ? "Masquer la correction" : "Afficher la correction suggérée"}
+                          </button>
+                          
+                          {showCorrection && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(aiFeedback.suggestedCode || '');
+                              }}
+                              className="text-[10px] text-indigo-600 hover:text-indigo-700 font-bold transition-colors cursor-pointer"
+                            >
+                              Copier le code
+                            </button>
+                          )}
+                        </div>
+
+                        {showCorrection && (
+                          <div className="mt-2 space-y-1 animate-fade-in">
+                            <pre className="p-3 bg-slate-950 text-slate-200 rounded-lg overflow-x-auto text-[10px] font-mono whitespace-pre select-text border border-slate-800">
+                              {aiFeedback.suggestedCode}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
