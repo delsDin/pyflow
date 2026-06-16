@@ -27,10 +27,25 @@ export default function ExerciseView({ dayId, progress, onPassQuiz, onPassChalle
   // Directory filter: 'current' | 'all'
   const [directoryFilter, setDirectoryFilter] = useState<'current' | 'all'>('current');
 
-  // Filtered lists
-  const matchQuizzes = directoryFilter === 'current' 
-    ? quizQuestions.filter(q => q.dayId === dayId) 
-    : quizQuestions;
+  // Shuffled quizzes state to persist randomized order across renders
+  const [shuffledQuizzes, setShuffledQuizzes] = useState<QuizQuestion[]>([]);
+
+  useEffect(() => {
+    const rawQuizzes = directoryFilter === 'current' 
+      ? quizQuestions.filter(q => q.dayId === dayId) 
+      : quizQuestions;
+    
+    // Shuffle the array using Fisher-Yates algorithm
+    const shuffled = [...rawQuizzes];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setShuffledQuizzes(shuffled);
+    setSelectedQuizIdx(0); // Reset index on day change
+  }, [dayId, directoryFilter]);
+
+  const matchQuizzes = shuffledQuizzes;
 
   const matchChallenges = directoryFilter === 'current'
     ? codingChallenges.filter(c => c.dayId === dayId)

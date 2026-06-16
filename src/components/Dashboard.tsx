@@ -1,6 +1,8 @@
-import { BookOpen, Award, Zap, CheckCircle2, Play, Flame, Trophy, Calendar, Sparkles, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BookOpen, Award, Zap, CheckCircle2, Play, Flame, Trophy, Calendar, Sparkles, Lock, RefreshCw } from 'lucide-react';
 import { CourseDay, UserProgress, PhaseType } from '../types';
 import { courseDays } from '../data/curriculum';
+import { fetchLeaderboard, LeaderboardEntry } from '../services/api';
 
 interface DashboardProps {
   progress: UserProgress;
@@ -12,6 +14,22 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ progress, onSelectDay, onNavigateTab, onSelectProject, unlockedDays = [], unlockedProjects = [] }: DashboardProps) {
+  const [activeSideTab, setActiveSideTab] = useState<'tip' | 'leaderboard'>('tip');
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState('');
+
+  useEffect(() => {
+    if (activeSideTab === 'leaderboard') {
+      setLeaderboardLoading(true);
+      setLeaderboardError('');
+      fetchLeaderboard()
+        .then(data => setLeaderboard(data))
+        .catch(err => setLeaderboardError(err.message || 'Erreur chargement classement'))
+        .finally(() => setLeaderboardLoading(false));
+    }
+  }, [activeSideTab]);
+
   const totalDays = 28;
   const completedCount = progress.completedDays.length;
   const progressPercent = Math.round((completedCount / totalDays) * 100);
@@ -166,19 +184,100 @@ export default function Dashboard({ progress, onSelectDay, onNavigateTab, onSele
           </div>
         </div>
 
-        {/* PyFlow Quote / Tip Widget */}
-        <div className="border border-slate-100 rounded-2xl p-6 bg-linear-to-b from-slate-50 to-slate-100/30 flex flex-col justify-between gap-4">
-          <div className="space-y-2">
-            <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-              💡
-            </div>
-            <h3 className="font-bold text-slate-800 text-sm">Le Conseil du Coach PyFlow</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-sans">
-              {getDailyTip()}
-            </p>
+        {/* PyFlow Quote / Tip / Leaderboard Widget */}
+        <div className="border border-slate-100 rounded-2xl bg-linear-to-b from-slate-50 to-slate-100/30 flex flex-col justify-between overflow-hidden shadow-2xs">
+          {/* Card Header Tabs */}
+          <div className="flex border-b border-slate-100 bg-slate-50">
+            <button
+              onClick={() => setActiveSideTab('tip')}
+              className={`flex-1 py-2.5 text-center text-xs font-bold transition-all border-b-2 cursor-pointer ${
+                activeSideTab === 'tip'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              💡 Conseils
+            </button>
+            <button
+              onClick={() => setActiveSideTab('leaderboard')}
+              className={`flex-1 py-2.5 text-center text-xs font-bold transition-all border-b-2 cursor-pointer ${
+                activeSideTab === 'leaderboard'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              🏆 Classement
+            </button>
           </div>
-          <div className="text-[11px] text-slate-400 italic font-mono">
-            "La régularité bat l’intensité de 100%."
+
+          <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+            {activeSideTab === 'tip' ? (
+              <>
+                <div className="space-y-2">
+                  <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                    💡
+                  </div>
+                  <h3 className="font-bold text-slate-800 text-sm">Le Conseil du Coach PyFlow</h3>
+                  <p className="text-xs text-slate-650 leading-relaxed font-sans">
+                    {getDailyTip()}
+                  </p>
+                </div>
+                <div className="text-[10px] text-slate-450 italic font-mono mt-2">
+                  "La régularité bat l’intensité de 100%."
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    🏆 Top Étudiants PyFlow
+                  </h3>
+                  <p className="text-[10px] text-slate-450 mt-0.5 font-sans">Classement général de la promo</p>
+                </div>
+
+                {leaderboardLoading ? (
+                  <div className="flex-1 flex items-center justify-center py-6">
+                    <span className="text-[11px] text-slate-500 flex items-center gap-1.5 font-sans">
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+                      Mise à jour du classement...
+                    </span>
+                  </div>
+                ) : leaderboardError ? (
+                  <div className="text-[11px] text-rose-500 py-4 text-center font-sans">{leaderboardError}</div>
+                ) : (
+                  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 mt-2">
+                    {leaderboard.slice(0, 5).map((entry, idx) => {
+                      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+                      return (
+                        <div key={entry.id} className="flex items-center justify-between text-xs p-2 rounded-xl bg-white border border-slate-100 shadow-3xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-bold text-slate-500 min-w-5 shrink-0 text-center">{medal}</span>
+                            <span className="font-bold text-slate-800 truncate">{entry.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] bg-slate-100 text-slate-650 px-1.5 py-0.5 rounded-md font-bold font-mono">
+                              {entry.score} pts
+                            </span>
+                            {entry.streak > 0 && (
+                              <span className="text-[10px] text-orange-600 font-bold shrink-0">
+                                🔥 {entry.streak}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {leaderboard.length === 0 && (
+                      <p className="text-xs text-slate-400 italic text-center py-4 font-sans">Aucun étudiant dans le classement.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="text-[9px] text-slate-400 text-center mt-2 border-t border-slate-100 pt-2 font-mono">
+                  Score = Jours × 100 + Quiz × 10 + Défis × 50
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -469,8 +469,8 @@ essai = ""
 export function generateDayQuizzes(dayId: number): QuizQuestion[] {
   // Check if we have handcrafted quizzes for this day
   const existing = manualQuizzes.filter(q => q.dayId === dayId);
-  if (existing.length >= 8) {
-    return existing.slice(0, 8);
+  if (existing.length >= 15) {
+    return existing.slice(0, 15);
   }
 
   // Fallback programmatic quizzes tailored to the specific day's concepts or themes
@@ -480,7 +480,7 @@ export function generateDayQuizzes(dayId: number): QuizQuestion[] {
   const generated: QuizQuestion[] = [...existing];
   let quizIndex = existing.length + 1;
 
-  while (generated.length < 8) {
+  while (generated.length < 15) {
     const topic = topics[generated.length % topics.length];
     
     // Choose questions with nice variations
@@ -489,21 +489,19 @@ export function generateDayQuizzes(dayId: number): QuizQuestion[] {
     let answerIndex = 0;
     let explanation = '';
 
-    switch (generated.length) {
+    switch (generated.length % 8) {
       case 0:
-      case 1:
         question = `Concernant "${topic}", quelle affirmation décrit le mieux la pratique standard recommandée ?`;
         options = [
           'Ignorer totalement les standards car Python est trop souple.',
-          'Respecter rigoureusement les préconisations officiellles d’écriture pour garder le code propre.',
+          'Respecter rigoureusement les préconisations officielles d’écriture pour garder le code propre.',
           'N’employer ces concepts que dans des applications d’analyse de données.',
           'Toujours utiliser des variables globales pour simplifier les calculs.'
         ];
         answerIndex = 1;
         explanation = `Pour l'item "${topic}", l'approche préconisée en Python est de suivre les standards officiels pour garantir la lisibilité et la maintenabilité globale.`;
         break;
-      case 2:
-      case 3:
+      case 1:
         question = `En abordant la notion de "${topic}", quel est le piège ou comportement inattendu qu’un débutant doit surveiller ?`;
         options = [
           'Le fait que Python utilise le typage dynamique fort qui empêche les conversions implicites douteuses.',
@@ -514,8 +512,7 @@ export function generateDayQuizzes(dayId: number): QuizQuestion[] {
         answerIndex = 0;
         explanation = `Python est typé dynamiquement mais fortement : cela évite les bugs silencieux en générant des exceptions claires si les types sont incompatibles.`;
         break;
-      case 4:
-      case 5:
+      case 2:
         question = `Sous quel angle technique ou organisationnel "${topic}" apporte-t-il le plus de valeur ajoutée ?`;
         options = [
           'Il permet de formater l’affichage graphique en mode console.',
@@ -526,7 +523,7 @@ export function generateDayQuizzes(dayId: number): QuizQuestion[] {
         answerIndex = 1;
         explanation = `Ce mécanisme contribue grandement à moduler l'application pour la rendre réutilisable et évolutive.`;
         break;
-      default:
+      case 3:
         question = `Quel outil ou concept est indispensable pour manipuler correctement "${topic}" ?`;
         options = [
           'Le terminal système de bas niveau uniquement.',
@@ -536,6 +533,50 @@ export function generateDayQuizzes(dayId: number): QuizQuestion[] {
         ];
         answerIndex = 1;
         explanation = `Un inspecteur, un interpréteur interactif ou un éditeur comme VS Code équipé d'extensions comme Pylance est l'environnement idéal.`;
+        break;
+      case 4:
+        question = `Quelle est l'erreur la plus commune commise par les développeurs concernant "${topic}" ?`;
+        options = [
+          'Une mauvaise syntaxe ou indentation provoquant une erreur de compilation.',
+          'L\'utilisation d\'un nombre trop élevé de commentaires.',
+          'L\'écriture du code entièrement en snake_case.',
+          'L\'exécution du script directement depuis le terminal.'
+        ];
+        answerIndex = 0;
+        explanation = `Une mauvaise indentation ou des parenthèses non fermées sont les erreurs de syntaxe les plus fréquentes.`;
+        break;
+      case 5:
+        question = `Quel est l'impact de "${topic}" sur les performances globales d'une application ?`;
+        options = [
+          'Cela ralentit obligatoirement toutes les boucles et opérations.',
+          'Cela dépend fortement de l\'implémentation et de la complexité algorithmique choisie.',
+          'Cela rend le programme incompatible avec d\'autres langages.',
+          'Cela n\'a strictement aucun impact sur le CPU ou la mémoire.'
+        ];
+        answerIndex = 1;
+        explanation = `L'impact sur les performances dépend de l'algorithme choisi et de la structure de données employée.`;
+        break;
+      case 6:
+        question = `Dans quel but précis a-t-on standardisé la gestion de "${topic}" en Python ?`;
+        options = [
+          'Pour simplifier l\'apprentissage et unifier les pratiques via la PEP 8.',
+          'Pour rendre le code Python identique au code C ou Java.',
+          'Pour interdire l\'utilisation de bibliothèques tierces.',
+          'Pour forcer le passage à une machine virtuelle payante.'
+        ];
+        answerIndex = 0;
+        explanation = `La PEP 8 et les standards de Python visent d'abord à harmoniser l'écriture du code pour faciliter sa lecture par d'autres humains.`;
+        break;
+      default:
+        question = `Quel principe clé de la philosophie Zen de Python s'applique directement à "${topic}" ?`;
+        options = [
+          'Le code doit être le plus complexe possible pour impressionner.',
+          'L\'explicite est préférable à l\'implicite, et le simple est préférable au complexe.',
+          'Toujours privilégier la performance brute à la lisibilité.',
+          'Ne jamais diviser le code en plusieurs fichiers ou modules.'
+        ];
+        answerIndex = 1;
+        explanation = `Le Zen de Python rappelle que l'explicite et la simplicité guident le développement de tout programme Python sain.`;
         break;
     }
 

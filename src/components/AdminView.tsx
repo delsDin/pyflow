@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { courseDays } from '../data/curriculum';
 import { projects } from '../data/projects';
+import { generateDayQuizzes, generateDayChallenges } from '../data/exercises';
 import {
   adminLogin, adminLogout,
   fetchStudents, createStudent, deleteStudent, updateStudentAccess,
@@ -65,6 +66,10 @@ export default function AdminView({
   const [localProjects, setLocalProjects] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+
+  // Selected student tab state
+  const [studentDetailTab, setStudentDetailTab] = useState<'access' | 'progress'>('access');
+  const [selectedDetailDayId, setSelectedDetailDayId] = useState<number>(1);
 
   // Create student form
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -130,6 +135,8 @@ export default function AdminView({
     setLocalDays(s.pyflow_unlocked_days.map(d => d.day_id));
     setLocalProjects(s.pyflow_unlocked_projects.map(p => p.project_id));
     setSaveMsg('');
+    setStudentDetailTab('access');
+    setSelectedDetailDayId(1);
   }, [selectedStudentId, students]);
 
   const handleLogin = async (e?: React.FormEvent) => {
@@ -549,95 +556,291 @@ export default function AdminView({
                 </div>
               </div>
 
-              {/* Days by phase */}
-              <div className="border border-slate-100 rounded-2xl bg-white shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-slate-100">
-                  <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                    📅 Jours ({localDays.length}/28)
-                  </h3>
-                </div>
-                <div className="divide-y divide-slate-50">
-                  {phases.map((phase, pIdx) => {
-                    const isExpanded = expandedPhases.includes(pIdx);
-                    const phaseUnlocked = phase.days.filter(d => localDays.includes(d.id)).length;
-                    return (
-                      <div key={pIdx}>
-                        <div className="flex items-center justify-between px-5 py-3 bg-slate-50/50">
-                          <button onClick={() => setExpandedPhases(prev =>
-                            isExpanded ? prev.filter(i => i !== pIdx) : [...prev, pIdx]
-                          )} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:text-indigo-600 transition-colors">
-                            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                            {phase.name}
-                            <span className="font-mono text-slate-500">{phaseUnlocked}/{phase.days.length}</span>
+              {/* Tab Selector */}
+              <div className="flex border-b border-slate-100">
+                <button
+                  onClick={() => setStudentDetailTab('access')}
+                  className={`px-5 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+                    studentDetailTab === 'access'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  🔒 Accès & Déblocage
+                </button>
+                <button
+                  onClick={() => setStudentDetailTab('progress')}
+                  className={`px-5 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+                    studentDetailTab === 'progress'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  📈 Progression & Exercices
+                </button>
+              </div>
+
+              {studentDetailTab === 'access' ? (
+                <>
+                  {/* Days by phase */}
+                  <div className="border border-slate-100 rounded-2xl bg-white shadow-sm overflow-hidden">
+                    <div className="px-5 py-3 border-b border-slate-100">
+                      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                        📅 Jours ({localDays.length}/28)
+                      </h3>
+                    </div>
+                    <div className="divide-y divide-slate-50">
+                      {phases.map((phase, pIdx) => {
+                        const isExpanded = expandedPhases.includes(pIdx);
+                        const phaseUnlocked = phase.days.filter(d => localDays.includes(d.id)).length;
+                        return (
+                          <div key={pIdx}>
+                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50/50">
+                              <button onClick={() => setExpandedPhases(prev =>
+                                isExpanded ? prev.filter(i => i !== pIdx) : [...prev, pIdx]
+                              )} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:text-indigo-600 transition-colors">
+                                {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                {phase.name}
+                                <span className="font-mono text-slate-500">{phaseUnlocked}/{phase.days.length}</span>
+                              </button>
+                              <button onClick={() => unlockPhase(pIdx)}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-500 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md transition-all cursor-pointer">
+                                Débloquer phase
+                              </button>
+                            </div>
+                            {isExpanded && (
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-4">
+                                {phase.days.map(day => {
+                                  const isUnlocked = localDays.includes(day.id);
+                                  return (
+                                    <button key={day.id} onClick={() => toggleDay(day.id)}
+                                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                                        isUnlocked
+                                          ? 'bg-indigo-500 text-white border-indigo-600 font-semibold shadow-sm'
+                                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
+                                      }`}>
+                                      <span className="truncate pr-1.5 leading-tight select-none">J-{day.id}</span>
+                                      {isUnlocked ? <Unlock className="h-3 w-3 shrink-0" /> : <Lock className="h-3 w-3 text-slate-400 shrink-0" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Projects */}
+                  <div className="border border-slate-100 rounded-2xl bg-white shadow-sm p-5 space-y-3">
+                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Trophy className="h-3.5 w-3.5 text-orange-500" /> Projets ({localProjects.length}/{projects.length})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {projects.map(proj => {
+                        const isUnlocked = localProjects.includes(proj.id);
+                        return (
+                          <button key={proj.id} onClick={() => toggleProject(proj.id)}
+                            className={`flex items-center justify-between p-3.5 rounded-xl border text-left cursor-pointer transition-all ${
+                              isUnlocked ? 'bg-emerald-50/50 border-emerald-200 text-slate-800' : 'bg-slate-50 border-slate-200 text-slate-500'
+                            }`}>
+                            <div className="space-y-0.5 truncate w-[85%]">
+                              <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md ${
+                                isUnlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                              }`}>{proj.level}</span>
+                              <div className="font-semibold text-xs truncate pt-1">{proj.title}</div>
+                            </div>
+                            {isUnlocked ? <CheckSquare className="h-4 w-4 text-emerald-500 shrink-0" /> : <Square className="h-4 w-4 text-slate-300 shrink-0" />}
                           </button>
-                          <button onClick={() => unlockPhase(pIdx)}
-                            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-500 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md transition-all cursor-pointer">
-                            Débloquer phase
-                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Save button */}
+                  <div className="flex items-center justify-between gap-4">
+                    {saveMsg && (
+                      <p className={`text-xs font-medium px-3 py-2 rounded-lg border ${
+                        saveMsg.startsWith('✅') ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
+                      }`}>{saveMsg}</p>
+                    )}
+                    <button onClick={handleSaveAccess} disabled={saving}
+                      className="ml-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold rounded-xl shadow cursor-pointer transition-colors flex items-center gap-2">
+                      {saving ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : null}
+                      {saving ? 'Sauvegarde…' : '💾 Sauvegarder les accès'}
+                    </button>
+                  </div>
+                </>
+              ) : (() => {
+                const prog = selectedStudent.pyflow_progress?.[0] || {
+                  streak: 0,
+                  last_active_date: null,
+                  completed_days: [],
+                  completed_quizzes: {},
+                  completed_challenges: {},
+                  completed_projects: []
+                };
+
+                const completedQuizzesCount = Object.keys(prog.completed_quizzes || {}).filter(k => prog.completed_quizzes?.[k]).length;
+                const completedChallengesCount = Object.keys(prog.completed_challenges || {}).length;
+
+                return (
+                  <div className="space-y-4">
+                    {/* Summary metrics card */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jours complétés</p>
+                        <p className="text-lg font-black text-slate-900 mt-1">
+                          {prog.completed_days.length} / 28
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quiz validés</p>
+                        <p className="text-lg font-black text-slate-900 mt-1">
+                          {completedQuizzesCount}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Défis soumis</p>
+                        <p className="text-lg font-black text-slate-900 mt-1">
+                          {completedChallengesCount}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Activité</p>
+                        <p className="text-lg font-black text-indigo-650 mt-1">
+                          🔥 {prog.streak || 0} jours
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Day selector & Exercises detailed view */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      {/* Day sidebar */}
+                      <div className="md:col-span-4 border border-slate-150 rounded-2xl bg-white shadow-sm max-h-[400px] overflow-y-auto divide-y divide-slate-100">
+                        <div className="p-3 bg-slate-50 border-b border-slate-100 sticky top-0">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sélectionner un jour</p>
                         </div>
-                        {isExpanded && (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-4">
-                            {phase.days.map(day => {
-                              const isUnlocked = localDays.includes(day.id);
+                        {courseDays.map(day => {
+                          const isSelected = day.id === selectedDetailDayId;
+                          const dayQuizzes = generateDayQuizzes(day.id);
+                          const dayChallenges = generateDayChallenges(day.id);
+                          
+                          const dayQuizzesCount = dayQuizzes.filter(q => prog.completed_quizzes?.[q.id]).length;
+                          const dayChallengesCount = dayChallenges.filter(c => prog.completed_challenges?.[c.id]).length;
+                          const isDayCompleted = prog.completed_days.includes(day.id);
+                          
+                          return (
+                            <button
+                              key={day.id}
+                              onClick={() => setSelectedDetailDayId(day.id)}
+                              className={`w-full text-left p-3 text-xs transition-colors flex items-center justify-between cursor-pointer ${
+                                isSelected ? 'bg-indigo-50 font-semibold text-indigo-700' : 'hover:bg-slate-50 text-slate-600'
+                              }`}
+                            >
+                              <div className="truncate pr-2">
+                                <span className="font-mono mr-1.5">J-{day.id}</span>
+                                <span className="truncate">{day.title}</span>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 text-[9px]">
+                                {dayQuizzesCount > 0 && (
+                                  <span className="bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-md font-mono">
+                                    Q:{dayQuizzesCount}
+                                  </span>
+                                )}
+                                {dayChallengesCount > 0 && (
+                                  <span className="bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded-md font-mono">
+                                    C:{dayChallengesCount}
+                                  </span>
+                                )}
+                                {isDayCompleted && (
+                                  <span className="text-emerald-600 font-bold ml-0.5" title="Jour marqué complété">✓</span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Exercises view */}
+                      <div className="md:col-span-8 border border-slate-150 rounded-2xl bg-white shadow-sm p-4 space-y-4 max-h-[400px] overflow-y-auto">
+                        <div>
+                          <h4 className="text-xs font-black text-slate-900">
+                            Jour {selectedDetailDayId} : {courseDays.find(d => d.id === selectedDetailDayId)?.title}
+                          </h4>
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            Détails des quiz et défis de code validés par l'étudiant.
+                          </p>
+                        </div>
+
+                        {/* Quizzes list */}
+                        <div className="space-y-2.5">
+                          <h5 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                            📝 Quiz théoriques ({generateDayQuizzes(selectedDetailDayId).filter(q => prog.completed_quizzes?.[q.id]).length} / 15 validés)
+                          </h5>
+                          <div className="space-y-1.5">
+                            {generateDayQuizzes(selectedDetailDayId).map((quiz, qIdx) => {
+                              const isPassed = !!prog.completed_quizzes?.[quiz.id];
                               return (
-                                <button key={day.id} onClick={() => toggleDay(day.id)}
-                                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                                    isUnlocked
-                                      ? 'bg-indigo-500 text-white border-indigo-600 font-semibold shadow-sm'
-                                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
+                                <div key={quiz.id} className="text-xs flex gap-2 items-start p-2 rounded-xl border border-slate-100 bg-slate-50/50">
+                                  <span className={`h-4 w-4 rounded-full shrink-0 flex items-center justify-center font-mono text-[9px] font-bold ${
+                                    isPassed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
                                   }`}>
-                                  <span className="truncate pr-1.5 leading-tight select-none">J-{day.id}</span>
-                                  {isUnlocked ? <Unlock className="h-3 w-3 shrink-0" /> : <Lock className="h-3 w-3 text-slate-400 shrink-0" />}
-                                </button>
+                                    {qIdx + 1}
+                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-slate-800 leading-relaxed text-[11px]">{quiz.question}</p>
+                                    {isPassed ? (
+                                      <p className="text-[9px] text-emerald-600 font-bold mt-0.5">✓ Validé · Option {quiz.answerIndex + 1} ({quiz.options[quiz.answerIndex]})</p>
+                                    ) : (
+                                      <p className="text-[9px] text-slate-450 mt-0.5">○ Non complété</p>
+                                    )}
+                                  </div>
+                                </div>
                               );
                             })}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Projects */}
-              <div className="border border-slate-100 rounded-2xl bg-white shadow-sm p-5 space-y-3">
-                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Trophy className="h-3.5 w-3.5 text-orange-500" /> Projets ({localProjects.length}/{projects.length})
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {projects.map(proj => {
-                    const isUnlocked = localProjects.includes(proj.id);
-                    return (
-                      <button key={proj.id} onClick={() => toggleProject(proj.id)}
-                        className={`flex items-center justify-between p-3.5 rounded-xl border text-left cursor-pointer transition-all ${
-                          isUnlocked ? 'bg-emerald-50/50 border-emerald-200 text-slate-800' : 'bg-slate-50 border-slate-200 text-slate-500'
-                        }`}>
-                        <div className="space-y-0.5 truncate w-[85%]">
-                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md ${
-                            isUnlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
-                          }`}>{proj.level}</span>
-                          <div className="font-semibold text-xs truncate pt-1">{proj.title}</div>
                         </div>
-                        {isUnlocked ? <CheckSquare className="h-4 w-4 text-emerald-500 shrink-0" /> : <Square className="h-4 w-4 text-slate-300 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
-              {/* Save button */}
-              <div className="flex items-center justify-between gap-4">
-                {saveMsg && (
-                  <p className={`text-xs font-medium px-3 py-2 rounded-lg border ${
-                    saveMsg.startsWith('✅') ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
-                  }`}>{saveMsg}</p>
-                )}
-                <button onClick={handleSaveAccess} disabled={saving}
-                  className="ml-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-bold rounded-xl shadow cursor-pointer transition-colors flex items-center gap-2">
-                  {saving ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : null}
-                  {saving ? 'Sauvegarde…' : '💾 Sauvegarder les accès'}
-                </button>
-              </div>
+                        {/* Challenges list */}
+                        <div className="space-y-3">
+                          <h5 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                            💻 Défis de programmation
+                          </h5>
+                          <div className="space-y-2">
+                            {generateDayChallenges(selectedDetailDayId).map((challenge) => {
+                              const submittedCode = prog.completed_challenges?.[challenge.id];
+                              return (
+                                <div key={challenge.id} className="p-3 rounded-2xl border border-slate-150 bg-slate-50/20 space-y-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <h6 className="text-[11px] font-bold text-slate-850">{challenge.title}</h6>
+                                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                                      submittedCode ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                                    }`}>
+                                      {submittedCode ? 'Soumis ✓' : 'Non soumis'}
+                                    </span>
+                                  </div>
+                                  {submittedCode ? (
+                                    <div className="space-y-1">
+                                      <p className="text-[9px] font-bold text-slate-400">CODE DE L'ÉTUDIANT :</p>
+                                      <pre className="bg-slate-900 text-slate-100 p-3 rounded-xl font-mono text-[10px] overflow-x-auto border border-slate-850">
+                                        <code>{submittedCode}</code>
+                                      </pre>
+                                    </div>
+                                  ) : (
+                                    <p className="text-[11px] text-slate-450 italic">Le code de cet exercice n'a pas encore été soumis.</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>

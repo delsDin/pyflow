@@ -53,6 +53,8 @@ export interface Student {
     streak: number;
     last_active_date: string | null;
     completed_days: number[];
+    completed_quizzes?: Record<string, boolean>;
+    completed_challenges?: Record<string, string>;
     completed_projects: string[];
   }[];
 }
@@ -237,4 +239,71 @@ export async function saveStudentProgress(
     const data = await res.json();
     throw new Error(data.error || 'Erreur sauvegarde progression');
   }
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  streak: number;
+  completedDaysCount: number;
+  completedQuizzesCount: number;
+  completedChallengesCount: number;
+  score: number;
+}
+
+export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
+  const selectQuery = 'id,name,pyflow_progress(streak,completed_days,completed_quizzes,completed_challenges,completed_projects)';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/pyflow_students?select=${encodeURIComponent(selectQuery)}`, {
+    headers: BASE_HEADERS,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur chargement du classement');
+
+  return (data as any[])
+    .filter(s => s.pyflow_progress && s.name !== 'Admin')
+    .map(s => {
+      // In PostgREST, nested objects might be returned as an object or a single-item array
+      const prog = Array.isArray(s.pyflow_progress)
+        ? s.pyflow_progress[0]
+        : s.pyflow_progress;
+
+      if (!prog) {
+        return {
+          id: s.id,
+          name: s.name,
+          streak: 0,
+          completedDaysCount: 0,
+          completedQuizzesCount: 0,
+          completedChallengesCount: 0,
+          score: 0,
+        };
+      }
+
+      const completedDaysCount = Array.isArray(prog.completed_days) ? prog.completed_days.length : 0;
+      
+      const completedQuizzesCount = typeof prog.completed_quizzes === 'object' && prog.completed_quizzes !== null
+        ? Object.keys(prog.completed_quizzes).filter(k => prog.completed_quizzes[k]).length
+        : 0;
+
+      const completedChallengesCount = typeof prog.completed_challenges === 'object' && prog.completed_challenges !== null
+        ? Object.keys(prog.completed_challenges).length
+        : 0;
+
+      // Score formula:
+      // - 100 points per completed day
+      // - 10 points per correct quiz
+      // - 50 points per code challenge
+      const score = (completedDaysCount * 100) + (completedQuizzesCount * 10) + (completedChallengesCount * 50);
+
+      return {
+        id: s.id,
+        name: s.name,
+        streak: prog.streak || 0,
+        completedDaysCount,
+        completedQuizzesCount,
+        completedChallengesCount,
+        score,
+      };
+    })
+    .sort((a, b) => b.score - a.score || b.streak - a.streak);
 }

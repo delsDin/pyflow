@@ -1,6 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
-import { fetchStudentAccess, getStoredStudentCode, setStoredStudentCode } from './services/api';
+import { fetchStudentAccess, getStoredStudentCode, setStoredStudentCode, fetchStudentProgress, saveStudentProgress, StudentProgress } from './services/api';
 import StudentLogin from './components/StudentLogin';
+
+function dbToLocalProgress(db: StudentProgress): UserProgress {
+  return {
+    completedDays: db.completed_days || [],
+    completedQuizzes: db.completed_quizzes || {},
+    completedChallenges: db.completed_challenges || {},
+    completedProjects: db.completed_projects || [],
+    streak: db.streak || 0,
+    lastActiveDate: db.last_active_date || null,
+  };
+}
+
+function localToDbProgress(local: UserProgress): StudentProgress {
+  return {
+    completed_days: local.completedDays || [],
+    completed_quizzes: local.completedQuizzes || {},
+    completed_challenges: local.completedChallenges || {},
+    completed_projects: local.completedProjects || [],
+    streak: local.streak || 0,
+    last_active_date: local.lastActiveDate || null,
+  };
+}
 import { 
   BookOpen, 
   Terminal, 
@@ -80,13 +102,30 @@ export default function App() {
           setUnlockedProjects(unlocked_projects);
           localStorage.setItem('pyflow_unlocked_days', JSON.stringify(unlocked_days));
           localStorage.setItem('pyflow_unlocked_projects', JSON.stringify(unlocked_projects));
+          
+          return fetchStudentProgress(studentCode);
         })
-        .catch(() => {
+        .then((dbProgress) => {
+          if (dbProgress) {
+            const localProg = dbToLocalProgress(dbProgress);
+            setProgress(localProg);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(localProg));
+          }
+        })
+        .catch((err) => {
+          console.error("Erreur lors du chargement des accès/progression :", err);
           // Code stored but network error: use cache and let through
           const savedDays = localStorage.getItem('pyflow_unlocked_days');
           const savedProjects = localStorage.getItem('pyflow_unlocked_projects');
           if (savedDays) { try { setUnlockedDays(JSON.parse(savedDays)); } catch { setUnlockedDays([]); } }
           if (savedProjects) { try { setUnlockedProjects(JSON.parse(savedProjects)); } catch { setUnlockedProjects([]); } }
+          
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            try {
+              setProgress(JSON.parse(raw));
+            } catch {}
+          }
         })
         .finally(() => setIsAccessReady(true));
     } else {
@@ -101,6 +140,19 @@ export default function App() {
     setUnlockedProjects(projs);
     localStorage.setItem('pyflow_unlocked_days', JSON.stringify(days));
     localStorage.setItem('pyflow_unlocked_projects', JSON.stringify(projs));
+    
+    const studentCode = getStoredStudentCode();
+    if (studentCode) {
+      fetchStudentProgress(studentCode)
+        .then((dbProgress) => {
+          if (dbProgress) {
+            const localProg = dbToLocalProgress(dbProgress);
+            setProgress(localProg);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(localProg));
+          }
+        })
+        .catch(err => console.error("Impossible de récupérer la progression lors de la connexion :", err));
+    }
   };
 
   const handleStudentLogout = () => {
@@ -150,10 +202,15 @@ export default function App() {
     }
   }, []);
 
-  // Sync state changes with localStorage
+  // Sync state changes with localStorage and Supabase
   const saveProgress = (updated: UserProgress) => {
     setProgress(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    const studentCode = getStoredStudentCode();
+    if (studentCode) {
+      saveStudentProgress(studentCode, localToDbProgress(updated))
+        .catch(err => console.error("Erreur de synchronisation de la progression sur le serveur :", err));
+    }
   };
 
   // Toggle completion flag on course day reading
