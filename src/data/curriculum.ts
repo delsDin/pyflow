@@ -163,97 +163,7 @@ Calculs de référence sur 7 et 2 :
  - Division réelle : 3.5
  - Division entière : 3
  - Reste restant (Modulo) : 1
- - 2 à la puissance 10 vaut : 1024`,
-    adminGuide: `### 🎯 Guide de l'Instructeur (Ultra-Détaillé) : Jour 1
-
-Ce guide est votre fil rouge pour l'animation du Jour 1. Il contient des explications enrichies, des concepts sous-jacents absents du cours étudiant (pour répondre aux questions avancées), et des exercices de soutien prêts à l'emploi.
-
-#### 1. Plan d'Animation Conseillé (Durée cible : 2h)
-1. **Introduction (15 min)** : Accueil, présentation de Python, démystification de la programmation.
-2. **Setup Environnement (30 min)** : Accompagnement à l'installation (VS Code + Python). Point critique de la journée.
-3. **Le modèle d'exécution (15 min)** : Compilation vs Interprétation (concept de Machine Virtuelle).
-4. **La pratique (45 min)** : \`print\`, \`input\` et création de variables.
-5. **Q&A et Exercice Bonus (15 min)** : Évaluation de la compréhension.
-
----
-
-#### 2. L'Histoire Détaillée de Python (Culture Générale Enseignant)
-*Pour briser la glace ou répondre aux passionnés, voici l'histoire approfondie du langage :*
-
-- **L'origine (Noël 1989)** : Guido van Rossum s'ennuyait pendant ses vacances de Noël. Il travaillait au CWI (Centre de Mathématiques et d'Informatique) d'Amsterdam sur le système d'exploitation Amoeba. Il cherchait un langage de script capable d'accéder aux appels système d'Amoeba, qui serait un descendant du langage **ABC** (un langage pensé pour l'enseignement, très lisible, mais impossible à étendre).
-- **Le nom "Python"** : Ce n'est pas le serpent ! Guido lisait les scripts publiés du célèbre groupe de comédie britannique *Monty Python's Flying Circus*. Il voulait un nom de langage "court, unique et légèrement mystérieux". C'est pourquoi la documentation officielle regorge d'exemples de code utilisant des mots comme \`spam\` et \`eggs\` au lieu de \`foo\` et \`bar\`.
-- **BDFL (Benevolent Dictator For Life)** : En 1995, Guido est nommé BDFL de Python par la communauté. Il a pris la décision finale sur toutes les évolutions du langage jusqu'en 2018, date à laquelle il s'est retiré pour laisser place à un conseil directeur (*Steering Council*).
-- **Le Schisme Python 2 vs Python 3 (2008-2020)** :
-  - *Le contexte* : Python 2 était devenu chaotique (gestion du texte vs binaire défaillante, duplications d'instructions). Guido a décidé de publier **Python 3.0** en 2008, un langage plus propre, mais **volontairement non-rétrocompatible** avec Python 2.
-  - *La crise* : Ce fut un désastre initial. Les entreprises refusaient de migrer car leur code allait casser. La migration globale a pris 12 ans ! La fin de vie officielle (EOL) de Python 2 n'a eu lieu qu'en Janvier 2020. Aujourd'hui, on ne développe **que** sur Python 3.
-
----
-
-#### 3. Concepts Avancés (Hors-Cours) pour l'Enseignant
-*Ces éléments ne sont pas dans le cours de l'étudiant, mais vous permettent d'avoir de l'avance et d'étoffer vos réponses face aux étudiants curieux.*
-
-- **Le GIL (Global Interpreter Lock)** :
-  - *Sujet* : "Est-ce que Python est rapide ?"
-  - *Explication enseignant* : CPython utilise un "Verrou Global" (GIL) qui empêche plusieurs threads d'exécuter du bytecode Python simultanément sur plusieurs cœurs du processeur. C'est pourquoi Python n'est pas optimal pour le multithreading CPU-intensif, mais excelle dans l'asynchrone ou en déléguant les calculs lourds à des bibliothèques C (comme NumPy).
-- **Le Garbage Collector (Ramasse-miettes)** :
-  - *Sujet* : "Doit-on détruire les variables pour vider la RAM ?"
-  - *Explication enseignant* : Contrairement au C++, Python utilise un système de **comptage de références**. Quand plus aucune étiquette (variable) ne pointe vers une donnée en mémoire, le *Garbage Collector* la supprime automatiquement. Vous pouvez illustrer cela avec la commande \`del variable\`.
-- **Typage Dynamique vs Fort** :
-  - *Sujet* : Beaucoup de débutants confondent "dynamique" et "faible".
-  - *Explication enseignant* : En JavaScript (typage faible), \`"1" + 1\` donne \`"11"\`. En Python (typage fort), \`"1" + 1\` provoque une **Erreur**. Le typage dynamique signifie juste qu'on ne déclare pas le type à la création, mais l'interpréteur est très strict sur les opérations permises !
-
----
-
-#### 3. Décryptage de la phrase clé (Dictionnaire Pédagogique)
-*Au début du cours, les étudiants lisent : "Python est un langage de haut niveau, interprété, multiparadigme et typé dynamiquement". Voici comment leur décortiquer cette carte d'identité :*
-
-- **De haut niveau (High-level)** : 
-  - *Explication* : Python s'occupe de la gestion complexe en arrière-plan (comme l'allocation de la RAM). Le code est proche de l'anglais, permettant à l'étudiant de se concentrer sur la logique et non sur la machine.
-- **Interprété vs Compilé (AOT)** : 
-  - *Métaphore* : Le compilateur (C++) est un traducteur littéraire : il traduit tout le livre en une seule fois avant publication (l'exécutable \`.exe\`). S'il y a une faute à la dernière page, le livre refuse de s'imprimer. L'interpréteur (Python), lui, est un traducteur simultané à l'ONU : il écoute et traduit ligne par ligne à la volée. S'il y a une erreur à la ligne 10, les lignes 1 à 9 s'exécuteront quand même !
-- **Multiparadigme** :
-  - *Explication* : Python est flexible et ne force pas un style de programmation unique. On peut coder de manière *procédurale* (une suite de commandes), *orientée objet* (en modélisant des concepts avec des Classes), ou *fonctionnelle*.
-- **Typé dynamiquement** :
-  - *Explication* : Pas besoin de déclarer \`int age = 18;\` comme en Java. On écrit \`age = 18\`, et l'interpréteur devine et assigne dynamiquement le type au moment de l'exécution en observant la donnée.
-- **Variable (Référence)** :
-  - *Métaphore* : Ne parlez pas de "boîtes". Parlez d'**étiquettes adhésives**. En Python, \`a = 5\` signifie : *Créer l'objet mémoire 5, et coller l'étiquette 'a' dessus*. Si on fait \`b = a\`, on colle simplement l'étiquette 'b' sur le même objet mémoire 5. Montrez-leur la fonction hors-programme \`id(a)\` pour prouver que les deux variables ont la même adresse mémoire !
-- **PEP 8 (Python Enhancement Proposal 8)** :
-  - *Définition* : C'est le guide de style officiel de Python. Il dicte comment espacer le code, nommer les variables (en \`snake_case\`), etc. Mentionnez-le pour les inciter à écrire un code "propre" dès le jour 1.
-
----
-
-#### 4. Foire Aux Questions (FAQ) Typique
-- **Q : "Pourquoi utiliser VS Code plutôt que l'IDLE officiel de Python ?"**
-  *Réponse :* "L'IDLE est un bac à sable pédagogique. VS Code est un outil professionnel industriel. Autant apprendre directement avec l'outil que vous utiliserez en entreprise, avec ses extensions surpuissantes (comme Pylance)."
-- **Q : "Pourquoi mon code fait un \`SyntaxError: invalid character in identifier\` ?"**
-  *Réponse :* L'étudiant a souvent copié/collé du code depuis un PDF ou Word qui utilise des guillemets typographiques (les guillemets inclinés \`« »\` ou \`“ ”\`) au lieu des guillemets informatiques droits (\`"\`).
-- **Q : "À quoi sert \`input()\` si on ne peut pas faire de calculs avec ?"**
-  *Réponse :* \`input()\` récupère ce que l'utilisateur tape sur son clavier. Or, un clavier ne produit QUE du texte (même si on tape des chiffres). C'est pourquoi on doit *caster* (convertir) ce texte avec \`int()\` ou \`float()\` avant de calculer.
-
----
-
-#### 5. Exercices Bonus "Live" (Prêts à l'emploi)
-
-**Exercice A : L'illusion de l'addition (Pour illustrer le casting)**
-*Demandez aux élèves de coder ceci sans expliquer l'erreur :*
-\`\`\`python
-prix = input("Entrez le prix : ")
-taxe = input("Entrez la taxe : ")
-print("Le total est de :", prix + taxe)
-\`\`\`
-*Effet attendu :* Si on tape 10 et 5, le résultat affiché est "105" au lieu de 15.
-*Débriefing :* L'opérateur \`+\` sur des chaînes de caractères (\`str\`) fait de la **concaténation** (coller les textes). Corrigez avec eux en ajoutant \`int(prix) + int(taxe)\`.
-
-**Exercice B : Le Calcul de l'Âge (Pour valider les variables)**
-*Consigne :* Crée un script demandant le prénom, puis l'année de naissance. Affiche un message personnalisé avec l'âge estimé de la personne en 2030.
-\`\`\`python
-# Solution enseignant
-prenom = input("Comment tu t'appelles ? ")
-annee = int(input("Ton année de naissance ? "))
-age_en_2030 = 2030 - annee
-print(f"{prenom}, en 2030 tu auras {age_en_2030} ans !")
-\`\`\`
-*(Vérifiez bien qu'ils utilisent les f-strings, beaucoup plus lisibles que les virgules).*`
+ - 2 à la puissance 10 vaut : 1024`
   },
   {
     id: 2,
@@ -451,19 +361,6 @@ print(f"Tarif appliqué : {tarif}€")`,
     expectedOutput: `--- Vérification d'Éligibilité Cinéma ---
 Statut : Mineur
 Heure demandée : 19h
-Tarif appliqué : 11.5€`,
-    adminGuide: `### 🎯 Guide de l'Instructeur (Ultra-Détaillé) : Jour 2
-
-Ce guide est votre plan de route pour animer la session sur les Conditions et la Logique. Il fournit des explications détaillées, de la culture générale informatique, et des exercices pratiques prêts à l'emploi pour enrichir votre cours.
-
-#### 1. Plan d'Animation Conseillé (Durée cible : 2h)
-1. **Rappel du Jour 1 & Échauffement (15 min)** : Revoir la saisie de données et la conversion de type (casting).
-2. **Les Booléens et Comparateurs (25 min)** : Définir la logique binaire et le piège du double égal \`==\`.
-3. **L'Aiguillage conditionnel (35 min)** : Structure \`if/elif/else\`. Insister lourdement sur la règle d'indentation de Python.
-4. **Les Opérateurs Logiques (30 min)** : Combiner des conditions avec \`and\`, \`or\`, \`not\` et expliquer le court-circuit.
-5. **Q&A et Mise en pratique collective (15 min)** : Résolution en direct de cas réels.
-
----
 
 #### 2. Culture & Concepts Avancés pour l'Enseignant
 *Pour répondre avec aplomb aux questions techniques des étudiants curieux :*
@@ -702,44 +599,141 @@ Cible critique 6 atteinte, arrêt prématuré !`
       'Listes: création, indexation et slicing (découpage)',
       'Méthodes clés: append(), insert(), remove(), pop(), sort()',
       'Itération sur des listes avec la boucle for',
-      'Tuples: concept d’immutabilité et cas d’actes'
+      'Tuples: concept d’immutabilité et cas d’usage'
     ],
-    contentMarkdown: `### Structurer de Multiples Données : Listes & Tuples
+    contentMarkdown: `### 1. Introduction aux Séquences : Dépasser les Variables Simples
+Jusqu'à présent, nos variables se comportaient comme des boîtes individuelles : une variable = une valeur (\`age = 25\`). Mais comment faire si nous devons gérer une classe de 30 élèves, un catalogue de 1000 produits ou les coordonnées X/Y d'un point ? Créer 1000 variables différentes (\`produit_1\`, \`produit_2\`, ...) serait ingérable.
 
-Les listes et les tuples sont des collections ordonnées d'éléments qui permettent de stocker des groupes de données de façon ordonnée.
+C'est ici qu'interviennent les **collections** (ou structures de données). Elles permettent de regrouper et d'organiser plusieurs éléments sous une seule et même étiquette. Aujourd'hui, nous explorons les deux séquences ordonnées les plus fondamentales de Python : les **Listes** et les **Tuples**.
 
-#### 1. Les Listes (\`list\`)
-Les listes sont délimitées par des crochets \`[]\`. Elles sont **mutables**, c'est-à-dire qu'on peut ajouter, retirer ou modifier leurs éléments après création.
-- **Slicing (Découpage)** : Permet de sélectionner une sous-partie de liste avec \`liste[début:fin:pas]\`.
-  - ex: \`animaux = ["chat", "chien", "oiseau", "lion"]\`
-  - \`animaux[1:3]\` renvoie \`["chien", "oiseau"]\`.
+---
 
-#### 2. Méthodes courantes sur les listes
-- \`.append(valeur)\` : Ajoute l'élément à la fin.
-- \`.insert(index, valeur)\` : Insère à un index défini.
-- \`.remove(valeur)\` : Supprime la première occurrence trouvée d'un élément.
-- \`.pop()\` : Retire et renvoie le dernier élément.
-- \`.sort()\` : Trie la liste par ordre alphabétique ou numérique.
+### 2. Les Listes (\`list\`) : La Collection à Tout Faire
+Une liste est une collection **ordonnée** (chaque élément a une place précise) et **mutable** (on peut la modifier à volonté après sa création).
 
-#### 3. Les Tuples (\`tuple\`)
-Les tuples s'écrivent avec des parenthèses \`()\`. Contrairement aux listes, ils sont **immuables** : on ne peut ni les modifier, ni ajouter d'éléments après leur création. Ils sont plus légers et sécurisés en mémoire.`,
+#### A. Création et Structure
+En Python, une liste est définie en encadrant ses éléments avec des **crochets \`[]\`**, séparés par des virgules.
+\`\`\`python
+# Une liste homogène (même type)
+temperatures = [18.5, 20.1, 22.4, 19.8]
+
+# Une liste hétérogène (types multiples acceptés !)
+profil_mixte = ["Alice", 28, True, 3.14]
+
+# Une liste vide (prête à être remplie)
+panier = []
+\`\`\`
+
+#### B. Indexation : Accéder à un élément précis
+Chaque élément possède un "numéro de place" appelé **index**. 
+⚠️ **Attention** : En informatique, on commence toujours à compter à partir de **zéro** !
+\`\`\`python
+fruits = ["Pomme", "Banane", "Cerise", "Datte"]
+print(fruits[0])  # Affiche Pomme
+print(fruits[2])  # Affiche Cerise
+\`\`\`
+Python propose une astuce géniale : les **index négatifs** pour compter à partir de la fin :
+\`\`\`python
+print(fruits[-1]) # Affiche Datte (le tout dernier élément)
+print(fruits[-2]) # Affiche Cerise (l'avant-dernier)
+\`\`\`
+
+#### C. Slicing : Découper une liste (Tranchage)
+Le *slicing* permet d'extraire une sous-partie de la liste avec la syntaxe \`liste[debut:fin:pas]\`.
+- Le \`debut\` est inclus.
+- La \`fin\` est **strictement exclue**.
+\`\`\`python
+lettres = ["A", "B", "C", "D", "E"]
+print(lettres[1:4])  # Extrait de l'index 1 au 3 inclus -> ['B', 'C', 'D']
+print(lettres[:3])   # Du début jusqu'à l'index 2 -> ['A', 'B', 'C']
+print(lettres[::-1]) # Astuce : Inverse totalement la liste !
+\`\`\`
+
+---
+
+### 3. Manipuler les Listes : L'Arsenal des Méthodes
+Puisque les listes sont *mutables*, Python intègre des "méthodes" (des fonctions attachées à l'objet liste) pour les altérer.
+
+| Action | Méthode / Syntaxe | Description et Exemple |
+| :--- | :--- | :--- |
+| **Ajouter à la fin** | \`.append(x)\` | Ajoute \`x\` tout à la fin : \`panier.append("Pain")\` |
+| **Insérer au milieu**| \`.insert(i, x)\` | Insère \`x\` à l'index \`i\` : \`panier.insert(0, "Lait")\` |
+| **Supprimer par nom**| \`.remove(x)\` | Détruit la 1ère occurrence de \`x\` : \`panier.remove("Lait")\` |
+| **Extraire par index**| \`.pop(i)\` | Retire et renvoie l'élément à l'index \`i\` (ou le dernier si \`i\` est vide). |
+| **Remplacer** | \`liste[i] = x\` | Écrase la valeur à l'index \`i\` : \`panier[1] = "Beurre"\` |
+| **Trier** | \`.sort()\` | Trie la liste (alphabétique ou croissant) : \`nombres.sort(reverse=True)\` |
+| **Connaître la taille**| \`len(liste)\` | Renvoie le nombre total d'éléments : \`len(panier)\` |
+
+---
+
+### 4. Parcourir une Liste : La puissance de \`for\`
+La boucle \`for\` est naturellement conçue pour itérer sur les listes élément par élément, sans même avoir besoin de gérer les index.
+
+\`\`\`python
+invites = ["Paul", "Marie", "Luc"]
+for personne in invites:
+    print(f"Bienvenue à la fête, {personne} !")
+\`\`\`
+Si vous avez *aussi* besoin de connaître le numéro de la place pendant le parcours, utilisez \`enumerate()\` :
+\`\`\`python
+for index, personne in enumerate(invites):
+    print(f"Invité n°{index} : {personne}")
+\`\`\`
+
+---
+
+### 5. Les Tuples (\`tuple\`) : La Collection Blindée
+Un *tuple* ressemble fortement à une liste, mais se distingue par deux différences majeures :
+1. Sa syntaxe utilise des **parenthèses \`()\`**.
+2. Il est **IMMUABLE**. Une fois créé, il est verrouillé et figé dans le marbre. Impossible d'ajouter, de supprimer ou de modifier le moindre élément.
+
+\`\`\`python
+coordonnees = (48.8566, 2.3522)
+print(coordonnees[0]) # Accès autorisé (48.8566)
+
+# coordonnees[0] = 50.0  ❌ ERREUR FATALE : TypeError! (L'objet 'tuple' ne supporte pas l'assignation)
+# coordonnees.append(1.0) ❌ ERREUR FATALE : Un tuple n'a pas de méthode append!
+\`\`\`
+
+#### Pourquoi utiliser un Tuple plutôt qu'une Liste ?
+- **Sécurité** : Protéger des données constantes (comme une adresse IP de serveur, des constantes mathématiques) contre les altérations accidentelles par d'autres parties du code.
+- **Performance** : Les tuples sont plus légers en mémoire et légèrement plus rapides à parcourir que les listes.
+- **Clés de dictionnaire** : (Concept avancé) Contrairement aux listes, les tuples peuvent servir de clés dans les dictionnaires car ils sont inaltérables.`,
     codeExample: `# Manipulation complète d'une liste de cours
 cours = ["Python", "HTML", "CSS"]
+
+# 1. Modifications dynamiques
 cours.append("JavaScript")
 cours.insert(1, "Git")
-del cours[2] # Supprime "HTML"
+del cours[2] # Supprime "HTML" à l'index 2
 
 print("Liste finale ordonnée :", sorted(cours))
 print("Dernier cours ajouté :", cours[-1])
 print("Slicing (les deux premiers) :", cours[:2])
 
-# Exemple de tuple (immédiatement immutable)
+print("-" * 20)
+
+# 2. Parcours automatisé
+print("Début du parcours :")
+for idx, matiere in enumerate(cours):
+    print(f"  Module {idx + 1} : {matiere}")
+
+print("-" * 20)
+
+# 3. Tuple (Collection immuable)
 coordonnees = (48.8566, 2.3522)
-print(f"Latitude: {coordonnees[0]}, Longitude: {coordonnees[1]}")`,
+print(f"Géo-localisation figée : Latitude {coordonnees[0]}, Longitude {coordonnees[1]}")`,
     expectedOutput: `Liste finale ordonnée : ['CSS', 'Git', 'JavaScript', 'Python']
 Dernier cours ajouté : JavaScript
 Slicing (les deux premiers) : ['Python', 'Git']
-Latitude: 48.8566, Longitude: 2.3522`
+--------------------
+Début du parcours :
+  Module 1 : Python
+  Module 2 : Git
+  Module 3 : CSS
+  Module 4 : JavaScript
+--------------------
+Géo-localisation figée : Latitude 48.8566, Longitude 2.3522`
   },
   {
     id: 5,
@@ -752,54 +746,163 @@ Latitude: 48.8566, Longitude: 2.3522`
       'Sets: création, opérations de théorie des ensembles (union, intersection, différence)',
       'Pratique de modélisation'
     ],
-    contentMarkdown: `### Dictionnaires et Ensembles uniques (Sets)
+    contentMarkdown: `### 1. Au-delà des Listes : Structurer par "Clés"
+Les listes sont parfaites pour des données séquentielles (le 1er élément, le 2ème, etc.). Mais si vous voulez stocker un profil utilisateur, une liste \`["Paul", 28, "Paris"]\` vous oblige à vous souvenir que l'index 0 est le prénom, l'index 1 est l'âge, etc. C'est source d'erreurs !
 
-Aujourd'hui, nous explorons deux structures de données non ordonnées très puissantes.
+La solution ? Les **Dictionnaires** (\`dict\`) ! Ils ne fonctionnent pas avec des index numériques (0, 1, 2) mais avec des **clés** textuelles (comme les mots dans un vrai dictionnaire).
 
-#### 1. Les Dictionnaires (\`dict\`)
-Un dictionnaire associe des paires de **clé: valeur**. C'est la structure idéale pour représenter un objet ou une entité (ex. un profil utilisateur). Les clés doivent être uniques et sont généralement des chaînes.
+---
+
+### 2. Les Dictionnaires (\`dict\`) : Paires Clé-Valeur
+Un dictionnaire s'écrit avec des accolades \`{}\`. Chaque élément est une paire séparée par les deux-points \`clé: valeur\`.
 \`\`\`python
-utilisateur = {"nom": "Inès", "age": 28, "ville": "Lyon"}
-# Accès sécurisé
-print(utilisateur.get("pays", "Non défini")) # évite de lever une erreur
+# Création d'un dictionnaire
+utilisateur = {
+    "pseudo": "Gamer99",
+    "niveau": 42,
+    "premium": True
+}
 \`\`\`
 
-#### 2. Méthodes d'itération sur un dictionnaire
-- \`.keys()\` : Itère sur toutes les clés.
-- \`.values()\` : Itère sur toutes les valeurs.
-- \`.items()\` : Itère sur les couples clés-valeurs.
+#### A. Lire et Modifier des valeurs
+Pour lire une donnée, on demande sa clé entre crochets \`[]\` :
+\`\`\`python
+print(utilisateur["pseudo"])  # Affiche "Gamer99"
 
-#### 3. Les Ensembles (\`set\`)
-Les sets sont des collections non ordonnées de valeurs **uniques** écrites avec \`{}\`. Ils éliminent de base les doublons et permettent des calculs rapides d'unions, d'intersections et de différences.
-- \`A.union(B)\` : Tous les éléments présents dans l'un ou l'autre.
-- \`A.intersection(B)\` : Éléments présents dans les deux ensembles.
-- \`A.difference(B)\` : Éléments de A non présents dans B.`,
-    codeExample: `# Exemple pratique : Profil étudiant et sets de compétences
-etudiant = {
-    "nom": "Jean",
-    "promotion": 2026,
-    "matieres": ["Algèbre", "Python"]
+# Si la clé n'existe pas, cela provoque une ERREUR (KeyError) !
+# print(utilisateur["age"])  <- BOOM ! 💥
+\`\`\`
+Pour éviter que le programme ne plante si la clé est manquante, utilisez la méthode magique \`.get()\` :
+\`\`\`python
+print(utilisateur.get("age")) # Renvoie sagement None au lieu de planter
+print(utilisateur.get("age", 18)) # Renvoie 18 (valeur par défaut) si "age" est introuvable
+\`\`\`
+Pour modifier ou ajouter une donnée, c'est aussi intuitif qu'une variable :
+\`\`\`python
+utilisateur["niveau"] = 43  # Modifie la valeur existante
+utilisateur["email"] = "gamer@mail.com" # Crée une nouvelle clé-valeur
+\`\`\`
+
+#### B. Itérer sur un Dictionnaire
+Comment parcourir un objet complexe constitué de clés et de valeurs ?
+Python propose 3 méthodes distinctes selon vos besoins :
+
+**1. Parcourir uniquement les clés (\`.keys()\`)**
+\`\`\`python
+for cle in utilisateur.keys():
+    print("Propriété disponible :", cle)
+# Affiche:
+# Propriété disponible : pseudo
+# Propriété disponible : niveau
+\`\`\`
+
+**2. Parcourir uniquement les valeurs (\`.values()\`)**
+\`\`\`python
+for valeur in utilisateur.values():
+    print("Valeur stockée :", valeur)
+# Affiche:
+# Valeur stockée : Gamer99
+# Valeur stockée : 42
+\`\`\`
+
+**3. Parcourir les deux en même temps (\`.items()\`)**
+C'est la méthode la plus puissante et la plus utilisée :
+\`\`\`python
+for cle, valeur in utilisateur.items():
+    print(f"Sa propriété '{cle}' a pour valeur '{valeur}'")
+# Affiche:
+# Sa propriété 'pseudo' a pour valeur 'Gamer99'
+# Sa propriété 'niveau' a pour valeur '42'
+\`\`\`
+
+---
+
+### 3. Les Ensembles (\`set\`) : Les Collections Uniques
+Les Sets s'écrivent aussi avec des accolades \`{}\`, mais sans les deux-points. Ce sont des sacs de données **non ordonnés** qui ont un super-pouvoir : **ils détruisent automatiquement les doublons !**
+
+\`\`\`python
+# Création (les doublons vont fusionner de force en un seul)
+fruits = {"Pomme", "Banane", "Cerise", "Pomme", "Banane"}
+print(fruits) # Affichera {'Pomme', 'Banane', 'Cerise'} dans un ordre imprévisible
+\`\`\`
+
+#### Pourquoi utiliser des Sets ? La théorie des ensembles !
+Les Sets sont conçus et ultra-optimisés pour comparer des groupes entiers (exactement comme les diagrammes de Venn en mathématiques).
+
+Voici le détail de chaque opération fondamentale :
+
+**A. L'Union (\`|\` ou \`.union()\`)** 
+Rassemble tous les éléments des deux ensembles en détruisant les doublons.
+\`\`\`python
+groupe_1 = {"Alice", "Bob"}
+groupe_2 = {"Bob", "Charlie"}
+tous_les_eleves = groupe_1.union(groupe_2)
+print(tous_les_eleves) # {'Alice', 'Bob', 'Charlie'}
+\`\`\`
+
+**B. L'Intersection (\`&\` ou \`.intersection()\`)** 
+Conserve **uniquement** les éléments qui sont présents à la fois dans le groupe A ET dans le groupe B.
+\`\`\`python
+amis_paul = {"Léa", "Marc", "Hugo"}
+amis_marie = {"Hugo", "Julie", "Léa"}
+amis_en_commun = amis_paul.intersection(amis_marie)
+print(amis_en_commun) # {'Léa', 'Hugo'}
+\`\`\`
+
+**C. La Différence (\`-\` ou \`.difference()\`)** 
+Conserve les éléments du groupe A, mais en **retirant** ceux qui appartiennent aussi au groupe B (ce que A possède, mais que B n'a pas).
+\`\`\`python
+competences_requises = {"Python", "Git", "SQL"}
+competences_etudiant = {"Python", "HTML"}
+manquantes = competences_requises.difference(competences_etudiant)
+print(manquantes) # {'Git', 'SQL'}
+\`\`\`
+
+C'est redoutable pour comparer rapidement des données en quelques microsecondes !`,
+    codeExample: `# Modélisation complexe : Un profil de Héros RPG
+
+heros = {
+    "nom": "Arthur",
+    "classe": "Guerrier",
+    "points_de_vie": 150,
+    "inventaire": ["Épée", "Bouclier", "Potion"] # Une liste DANS un dictionnaire !
 }
 
-# Ajout d'une clé-valeur
-etudiant["note_finale"] = 18
+print("--- STATUT DU HÉROS ---")
+# On ajoute une nouvelle propriété
+heros["niveau"] = 5 
+# On accède à une sous-propriété (le 3ème objet de son inventaire)
+print(f"{heros['nom']} a bu sa {heros['inventaire'][2]} !")
+heros['inventaire'].pop() # Il la boit, donc on l'enlève !
 
-print("Informations Étudiant :")
-for cle, valeur in etudiant.items():
-    print(f" - {cle} : {valeur}")
+print("\\n--- INVENTAIRE FINAL ---")
+for cle, valeur in heros.items():
+    print(f"  > {cle.capitalize()} : {valeur}")
 
-# Utilisation des sets pour comparer des compétences
-competences_requises = {"Python", "SQL", "Git", "Statistiques"}
-competences_etudiant = {"Python", "Git", "HTML"}
+print("\\n--- ANALYSE DE COMPÉTENCES (SETS) ---")
+competences_requises = {"Épée à 2 mains", "Parade", "Cavalier"}
+competences_acquises = {"Parade", "Cuisine", "Cavalier"}
 
-manquantes = competences_requises.difference(competences_etudiant)
-print("Compétences à acquérir :", manquantes)`,
-    expectedOutput: `Informations Étudiant :
- - nom : Jean
- - promotion : 2026
- - matieres : ['Algèbre', 'Python']
- - note_finale : 18
-Compétences à acquérir : {'Statistiques', 'SQL'}`
+print("Compétences valides pour le niveau supérieur :")
+print(competences_requises.intersection(competences_acquises))
+
+print("Compétences manquantes à apprendre :")
+print(competences_requises.difference(competences_acquises))`,
+    expectedOutput: `--- STATUT DU HÉROS ---
+Arthur a bu sa Potion !
+
+--- INVENTAIRE FINAL ---
+  > Nom : Arthur
+  > Classe : Guerrier
+  > Points_de_vie : 150
+  > Inventaire : ['Épée', 'Bouclier']
+  > Niveau : 5
+
+--- ANALYSE DE COMPÉTENCES (SETS) ---
+Compétences valides pour le niveau supérieur :
+{'Cavalier', 'Parade'}
+Compétences manquantes à apprendre :
+{'Épée à 2 mains'}`
   },
   {
     id: 6,
@@ -812,47 +915,137 @@ Compétences à acquérir : {'Statistiques', 'SQL'}`
       'Portée des variables (Variables locales vs globales)',
       'Arguments optionnels (valeurs par défaut) et nommés'
     ],
-    contentMarkdown: `### Maîtriser le Coeur du Code : les Fonctions
+    contentMarkdown: `### 1. La Philosophie des Fonctions : DRY (Don't Repeat Yourself)
+Jusqu'ici, nous écrivions notre code de haut en bas. Mais si vous devez calculer l'âge de 50 utilisateurs à différents endroits de votre programme, vous n'allez pas copier-coller la même formule 50 fois ! 
 
-Une fonction est un bloc de code réutilisable effectuant une tâche bien précise. Elle permet d'éviter l'effet "code spaghetti" et facilite les tests.
+Une **fonction** est une "mini-usine". Vous lui donnez des matières premières (les **arguments**), elle effectue un travail caché à l'intérieur (le **bloc de code**), et elle vous renvoie un produit fini (le **retour**).
 
-#### 1. Définition et Arguments
-On définit une fonction avec le mot-clé \`def\`, suivi de son nom et de parenthèses :
+---
+
+### 2. Définir et Appeler une Fonction
+En Python, on crée une fonction avec le mot-clé \`def\` (pour *define*), suivi du nom de la fonction, de parenthèses et de deux-points \`:\`. Le code qui appartient à la fonction doit obligatoirement être **indenté**.
+
 \`\`\`python
-def saluer(nom):
-    print(f"Bonjour {nom} !")
+# 1. DÉFINITION de la fonction (l'usine est construite, mais ne tourne pas encore)
+def dire_bonjour():
+    print("Bonjour et bienvenue dans le programme !")
+
+# 2. APPEL de la fonction (on allume l'usine et on l'exécute)
+dire_bonjour()  # Affiche le message
 \`\`\`
 
-#### 2. Instruction \`return\`
-C'est elle qui permet de renvoyer un résultat de calcul de la fonction au flux principal du programme. Ne confondez pas \`print()\` et \`return\` !
+---
+
+### 3. Les Paramètres et les Arguments
+Pour qu'une fonction soit flexible et réutilisable, on peut lui passer des variables entre ses parenthèses. Ce sont les **paramètres**.
 \`\`\`python
-def carre(x):
-    return x * x
+def saluer(nom, age): # 'nom' et 'age' sont les paramètres attendus
+    print(f"Salut {nom}, tu as {age} ans !")
+
+saluer("Alice", 25) # "Alice" et 25 sont les arguments fournis à l'appel
 \`\`\`
 
-#### 3. Portée des Variables (Scope)
-- **Locale** : Créée dans une fonction, inaccessible en dehors d'elle.
-- **Globale** : Déclarée au tout début du fichier, visible partout mais modifiable dans les fonctions seulement avec précaution (\`global\`).
-
-#### 4. Paramètres par défaut et nommés
-On peut définir des valeurs par défaut pour les arguments afin de les rendre optionnels lors de l'appel.
+#### Paramètres avec valeur par défaut (Optionnels)
+Vous pouvez rendre un argument facultatif en lui donnant une valeur de base avec le signe \`=\`. **Attention** : Les paramètres par défaut doivent toujours être placés *à la fin* de la liste entre les parenthèses.
 \`\`\`python
-def calculer_imc(poids, taille=1.70):
-    return poids / (taille ** 2)
+def reserver_billet(destination, classe="Économique"):
+    print(f"Billet pour {destination} en classe {classe}.")
+
+reserver_billet("Tokyo")                # Affiche: Billet pour Tokyo en classe Économique.
+reserver_billet("New York", "Affaires") # Écrase la valeur par défaut
+\`\`\`
+
+#### Arguments Nommés (Keyword Arguments)
+Lors de l'appel de la fonction, vous pouvez préciser le nom explicite du paramètre. L'ordre n'a alors plus aucune importance !
+\`\`\`python
+saluer(age=30, nom="Bob") # L'ordre est inversé, mais Python associe correctement les valeurs !
+\`\`\`
+
+---
+
+### 4. Le Renvoi de Valeur : \`return\` vs \`print\`
+**C'est l'erreur numéro 1 des débutants en programmation !**
+- \`print()\` sert **uniquement** à afficher du texte sur l'écran pour l'humain. Le programme lui-même ne "capture" aucune donnée.
+- \`return\` ordonne à la fonction de **recracher une donnée** vers le programme, pour que l'ordinateur puisse la stocker dans une variable et continuer à faire des calculs avec. 
+
+*Note vitale : Dès que Python croise le mot \`return\`, la fonction s'arrête instantanément. Tout code écrit en dessous ne sera jamais lu.*
+
+\`\`\`python
+def carre_mauvais(x):
+    print(x * x) # Affiche le résultat, mais ne renvoie RIEN (None) au système
+
+def carre_bon(x):
+    return x * x # Renvoie silencieusement le calcul au programme
+
+resultat = carre_bon(5) # 'resultat' contient maintenant la valeur 25
+resultat_suivant = resultat + 10 # L'addition est possible uniquement parce qu'on a utilisé return !
+\`\`\`
+
+---
+
+### 5. La Portée des Variables (Le concept de "Scope")
+Les variables créées *à l'intérieur* d'une fonction sont dites **locales**. Elles naissent lors de l'appel de la fonction et sont brutalement détruites dès que la fonction se termine (afin de libérer la RAM). Le reste du programme ne peut donc pas y accéder.
+
+\`\`\`python
+secret_global = "Je suis visible partout"
+
+def espion():
+    secret_local = "Je suis invisible de l'extérieur"
+    print(secret_global) # Fonctionne ! La fonction a accès à l'extérieur.
+
+espion()
+# print(secret_local) <- ERREUR FATALE (NameError), la variable locale n'existe plus !
+\`\`\`
+
+---
+
+### 6. Bonus Pro : La Documentation (Docstring)
+Un bon développeur explique ce que fait sa fonction pour ses collègues ou son futur "lui". On utilise les triples guillemets \`"""\` juste sous la définition \`def\`. Votre éditeur de code l'affichera au survol de la fonction !
+\`\`\`python
+def additionner(a, b):
+    """
+    Additionne deux nombres et renvoie le résultat.
+    """
+    return a + b
 \`\`\``,
-    codeExample: `# Définition d'un simulateur de salaire avec bonus
-def calculer_remuneration(salaire_base, bonus_excellence=0.0, devise="EUR"):
-    """Calcule le salaire total après bonus d'excellence."""
-    total = salaire_base + (salaire_base * bonus_excellence)
-    return f"{total:.2f} {devise}"
+    codeExample: `# Un programme complet combinant les facettes des fonctions
 
-print("Salaire classique (sans bonus optionnel) :", calculer_remuneration(3000))
-print("Salaire exceptionnel (bonus de 15%) :", calculer_remuneration(3000, 0.15))
-print("Salaire en dollars (par argument nommé) :", calculer_remuneration(salary_base=3200, devise="USD", bonus_excellence=0.1)[0:25] if 'salary_base' in locals() else "Sûr et simple : USD") # let's keep basic:
-print("Salaire USD :", calculer_remuneration(3100, bonus_excellence=0.08, devise="USD"))`,
-    expectedOutput: `Salaire classique (sans bonus optionnel) : 3000.00 EUR
-Salaire exceptionnel (bonus de 15%) : 3450.00 EUR
-Salaire USD : 3348.00 USD`
+def calculer_prix_ttc(prix_ht, taxe=0.20):
+    """
+    Convertit un prix Hors Taxe en Toutes Taxes Comprises.
+    La taxe par défaut est de 20% (0.20).
+    """
+    prix_final = prix_ht + (prix_ht * taxe)
+    return prix_final
+
+def afficher_facture(client, montant_ht):
+    # Les fonctions peuvent s'appeler entre elles !
+    total = calculer_prix_ttc(montant_ht) 
+    
+    print("-" * 30)
+    print(f"Facture pour le client : {client.capitalize()}")
+    print(f"Montant HT  : {montant_ht:.2f} €")
+    print(f"Montant TTC : {total:.2f} €")
+    print("-" * 30)
+
+# 1. Utilisation classique (la taxe par défaut de 20% s'applique automatiquement)
+afficher_facture("Alice", 100.0)
+
+# 2. Utilisation avec une valeur spécifique (TVA réduite à 5.5%)
+# Le 'return' nous permet de récupérer la donnée pour l'imprimer directement
+total_reduit = calculer_prix_ttc(100.0, 0.055)
+print(f"Prix avec taxe réduite : {total_reduit} €")
+
+# 3. Utilisation des arguments nommés pour ignorer totalement l'ordre
+total_etranger = calculer_prix_ttc(taxe=0.15, prix_ht=200.0)
+print(f"Prix avec paramètres nommés inversés : {total_etranger} €")`,
+    expectedOutput: `------------------------------
+Facture pour le client : Alice
+Montant HT  : 100.00 €
+Montant TTC : 120.00 €
+------------------------------
+Prix avec taxe réduite : 105.5 €
+Prix avec paramètres nommés inversés : 230.0 €`
   },
   {
     id: 7,
@@ -865,43 +1058,120 @@ Salaire USD : 3348.00 USD`
       'Entrées/Sorties simples de fichiers texte',
       'Exercice bilan de révision générale'
     ],
-    contentMarkdown: `### Journée de Synthèse : Chaînes et Bilan Débutant
+    contentMarkdown: `### 1. Le pouvoir caché des Chaînes de Caractères (Strings)
+En Python, le texte (les chaînes de caractères, ou \`str\`) n'est pas qu'une simple suite de lettres inertes. Ce sont des objets "intelligents" livrés avec une véritable boîte à outils intégrée (les "méthodes").
 
-Félicitations ! Vous terminez aujourd'hui le premier cycle. Dedions cette étape à la manipulation avancée des textes (notre principal média d'entrée/sortie) et à la révision.
+Pour utiliser ces outils, on tape le nom de la variable contenant le texte, suivi d'un point \`.\`, puis le nom de l'outil et ses parenthèses \`()\`.
 
-#### 1. Manipulation fine des Textes
-Les chaînes de caractères s'apparentent à des tuples de lettres en Python. Elles possèdent d'abondantes méthodes :
-- \`texte.upper()\` / \`texte.lower()\` : Passage en majuscules / minuscules.
-- \`texte.strip()\` : Retire les espaces blancs indésirables au début et à la fin.
-- \`texte.replace("ancien", "nouveau")\` : Remplace une sous-chaîne.
-- \`texte.split(",")\` : Découpe la chaîne en une liste de mots au séparateur donné.
-- \`",".join(ma_liste)\` : Rassemble une liste de mots sous forme de chaîne unique.
-
-#### 2. Formatage moderne (\`f-strings\`)
-Introduit en Python 3.6, le formatage interpolé s'écrit \`f"..."\`. On y inclut n'importe quelle variable ou expression valide dans des accolades :
+#### A. Nettoyer et Modifier la Casse (Majuscules/Minuscules)
+C'est idéal quand vous demandez à un utilisateur d'entrer son email et qu'il ajoute des espaces par erreur.
 \`\`\`python
-unites = 4
-prix = 19.99
-print(f"Total: {unites * prix:.2f}€") # '.2f' formate à 2 décimales.
+texte = "   bOnjOur MOnde!   "
+
+print(texte.strip())       # "bOnjOur MOnde!" (Retire les espaces au début et à la fin)
+print(texte.lower())       # "   bonjour monde!   " (Tout en minuscules)
+print(texte.upper())       # "   BONJOUR MONDE!   " (Tout en majuscules)
+print(texte.capitalize())  # "   bonjour monde!   " (1ère lettre en majuscule)
+
+# On peut même enchaîner les méthodes (le chaînage) !
+print(texte.strip().lower().capitalize()) # "Bonjour monde!"
 \`\`\`
 
-#### 3. Introduction rapide aux fichiers textes
-À la fin de ce cours, nous posons un pied dans le stockage persistant basique :
+#### B. Remplacer et Découper
+Vous voulez corriger un mot dans une longue phrase ? Ou la découper en liste de mots séparés ?
 \`\`\`python
-# Écrire dans un fichier
-with open("notes.txt", "w") as f:
-    f.write("Ligne 1 : Apprendre le Python Express")
-\`\`\``,
-    codeExample: `# Mini script de formatage de données d'un bulletin scolaire
-noms_bruts = "  lucas, sophie, MAXIME   "
-noms_nettoyes = [n.strip().capitalize() for n in noms_bruts.split(",")]
+phrase = "J'aime les pommes et les bananes"
 
-print("Étudiants de la classe :", " | ".join(noms_nettoyes))
+# 1. Remplacer (.replace)
+nouvelle_phrase = phrase.replace("pommes", "fraises")
+print(nouvelle_phrase) # "J'aime les fraises et les bananes"
 
-taux_reussite = 11 / 12
-print(f"Le taux de réussite de l'examen est estimé à : {taux_reussite:.1%}")`,
-    expectedOutput: `Étudiants de la classe : Lucas | Sophie | Maxime
-Le taux de réussite de l'examen est estimé à : 91.7%`
+# 2. Découper en liste (.split)
+liste_mots = phrase.split(" ") # On coupe à chaque espace trouvé
+print(liste_mots) # ["J'aime", "les", "pommes", "et", "les", "bananes"]
+
+# 3. Rassembler une liste en texte (.join)
+texte_reconstruit = " - ".join(liste_mots)
+print(texte_reconstruit) # "J'aime - les - pommes - et - les - bananes"
+\`\`\`
+
+---
+
+### 2. Le Formatage Moderne : Les f-strings (Magie 🪄)
+Auparavant, mélanger du texte et des variables en Python était laborieux. Aujourd'hui, il existe les **f-strings** (format strings). 
+Placez simplement la lettre \`f\` minuscule **avant** les guillemets de votre texte. Dès lors, toutes les accolades \`{}\` à l'intérieur du texte deviendront des "zones de calcul" Python !
+
+\`\`\`python
+prenom = "Alice"
+age = 30
+solde = 1450.5678
+
+# La magie opère : Python remplace les accolades par la valeur des variables
+print(f"Bonjour {prenom}, l'année prochaine tu auras {age + 1} ans.")
+
+# On peut même formater l'affichage des nombres ! (ex: forcer 2 chiffres après la virgule)
+print(f"Votre solde est de : {solde:.2f} €") # Affiche : "Votre solde est de : 1450.57 €"
+\`\`\`
+
+---
+
+### 3. Les Fichiers : Sauvegarder sur votre Disque Dur
+Jusqu'à présent, nos données disparaissaient dès qu'on fermait le programme. Il est temps de créer un vrai fichier texte sur votre ordinateur de manière permanente !
+
+Python utilise la commande \`open()\` accompagnée du gestionnaire de contexte \`with\`. Le mot \`with\` est génial car **il ferme automatiquement le fichier pour vous** dès que vous avez terminé (ce qui évite de corrompre vos données ou de faire planter l'ordinateur).
+
+#### Écrire dans un fichier (\`"w"\` pour *write*)
+\`\`\`python
+# Le mode "w" crée le fichier (ou écrase l'ancien s'il existait déjà !)
+with open("mon_journal.txt", "w") as fichier:
+    fichier.write("Cher journal, aujourd'hui j'ai appris Python.\\n")
+    fichier.write("Les f-strings, c'est vraiment fantastique !")
+\`\`\`
+
+#### Lire un fichier (\`"r"\` pour *read*)
+\`\`\`python
+# Le mode "r" permet de lire le contenu sans le modifier
+with open("mon_journal.txt", "r") as fichier:
+    contenu_complet = fichier.read()
+    print("Voici ce que contient le fichier :")
+    print(contenu_complet)
+\`\`\`
+*Et voilà ! Vous savez maintenant formater des textes proprement et sauvegarder vos résultats.*`,
+    codeExample: `# Bilan du Débutant : Outil de traitement d'inscriptions
+
+def traiter_candidature(nom_brut, age, passion):
+    """Nettoie le nom et génère un badge de membre."""
+    # 1. Chaînage de méthodes (Enlever espaces marginaux + Mettre en majuscules)
+    nom_propre = nom_brut.strip().upper()
+    
+    # 2. Formatage avec f-string et petite condition dans les accolades
+    badge = f"*** BADGE OFFICIEL ***\\nNom : {nom_propre}\\nCatégorie : {'Majeur' if age >= 18 else 'Mineur'}\\nPassion : {passion.capitalize()}"
+    return badge
+
+# Simulation de données reçues sur un site web (mal formatées, pleines d'espaces)
+noms_recus = "  dupont  ,   martin,   LEROY"
+
+# 1. Découpage de la chaîne en une vraie liste
+liste_noms = noms_recus.split(",")
+
+# 2. On traite le premier candidat
+badge_candidat_1 = traiter_candidature(liste_noms[0], 25, "programmation")
+
+print(badge_candidat_1)
+
+# 3. Écriture (sauvegarde) de ce badge dans un fichier
+print("\\n[Système] Sauvegarde du fichier 'badge.txt' en cours...")
+with open("badge_dupont.txt", "w") as fichier:
+    fichier.write(badge_candidat_1)
+
+print("[Système] Sauvegarde terminée avec succès !")`,
+    expectedOutput: `*** BADGE OFFICIEL ***
+Nom : DUPONT
+Catégorie : Majeur
+Passion : Programmation
+
+[Système] Sauvegarde du fichier 'badge.txt' en cours...
+[Système] Sauvegarde terminée avec succès !`
   },
 
   // --- PHASE 2: INTERMÉDIAIRE (JOURS 8-14) ---

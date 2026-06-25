@@ -13,7 +13,8 @@ import {
   fetchStudents, createStudent, deleteStudent, updateStudentAccess,
   fetchAdmins, createAdmin, updateAdmin,
   getStoredAdminToken, setStoredAdminToken, clearStoredAdminToken,
-  Student, AdminAccount
+  fetchStudentProgress,
+  Student, AdminAccount, StudentProgress
 } from '../services/api';
 
 interface AdminViewProps {
@@ -60,8 +61,10 @@ export default function AdminView({
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState('');
 
-  // Selected student for access management
+  // Selected student state
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudentProgress, setSelectedStudentProgress] = useState<StudentProgress | null>(null);
+  const [studentProgressLoading, setStudentProgressLoading] = useState(false);
   const [localDays, setLocalDays] = useState<number[]>([]);
   const [localProjects, setLocalProjects] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -127,9 +130,12 @@ export default function AdminView({
     }
   }, [isAdminAuthenticated, loadStudents, loadAdmins]);
 
-  // When student selected, load their current access into local state
+  // When student selected, load their current access and progress into local state
   useEffect(() => {
-    if (!selectedStudentId) return;
+    if (!selectedStudentId) {
+      setSelectedStudentProgress(null);
+      return;
+    }
     const s = students.find(st => st.id === selectedStudentId);
     if (!s) return;
     setLocalDays(s.pyflow_unlocked_days.map(d => d.day_id));
@@ -137,6 +143,20 @@ export default function AdminView({
     setSaveMsg('');
     setStudentDetailTab('access');
     setSelectedDetailDayId(1);
+
+    const loadProgress = async () => {
+      setStudentProgressLoading(true);
+      try {
+        const prog = await fetchStudentProgress(s.student_code);
+        setSelectedStudentProgress(prog);
+      } catch (err) {
+        console.error("Erreur stats:", err);
+        setSelectedStudentProgress(null);
+      } finally {
+        setStudentProgressLoading(false);
+      }
+    };
+    loadProgress();
   }, [selectedStudentId, students]);
 
   const handleLogin = async (e?: React.FormEvent) => {
@@ -674,8 +694,16 @@ export default function AdminView({
                   </div>
                 </>
               ) : (() => {
-                const rawProg = selectedStudent.pyflow_progress;
-                const prog = (Array.isArray(rawProg) ? rawProg[0] : rawProg) || {
+                if (studentProgressLoading) {
+                  return (
+                    <div className="flex flex-col items-center justify-center p-8 text-slate-400 space-y-3">
+                      <RefreshCw className="h-6 w-6 animate-spin text-indigo-400" />
+                      <p className="text-xs font-medium">Chargement des statistiques de {selectedStudent.name}...</p>
+                    </div>
+                  );
+                }
+
+                const prog = selectedStudentProgress || {
                   streak: 0,
                   last_active_date: null,
                   completed_days: [],
